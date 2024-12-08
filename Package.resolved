@@ -1,0 +1,42 @@
+{
+  "originHash" : "6fe52d39ac846ca581122403fbc290ef5822ee0d59b631162d7701e254022826",
+  "pins" : [
+    {
+      "identity" : "cserrors",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CharlesJS/CSErrors",
+      "state" : {
+        "revision" : "a29b22f124d059030f6e65caacf3e02a67ca6dfb",
+        "version" : "1.2.9"
+      }
+    },
+    {
+      "identity" : "swift-async-algorithms",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-async-algorithms",
+      "state" : {
+        "revision" : "5c8bd186f48c16af0775972700626f0b74588278",
+        "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections.git",
+      "state" : {
+        "revision" : "671108c96644956dddcd89dd59c203dcdb36cec7",
+        "version" : "1.1.4"
+      }
+    },
+    {
+      "identity" : "syncpolyfill",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CharlesJS/SyncPolyfill",
+      "state" : {
+        "revision" : "aa37b7f0d80031c0081aa3a8de7e0fee5717f806",
+        "version" : "0.1.0"
+      }
+    }
+  ],
+  "version" : 3
+}

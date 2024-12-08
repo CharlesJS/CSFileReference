@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "6EE9BCF1-80B4-44B0-854F-88F969CA3747",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "FileReferenceTests",
+        "name" : "FileReferenceTests"
+      }
+    }
+  ],
+  "version" : 1
+}
