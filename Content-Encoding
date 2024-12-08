@@ -1,0 +1,11 @@
+HTTP/2 206 
+last-modified: Wed, 06 Dec 2023 20:45:05 GMT
+etag: "15dd-60bdd6d053640"
+accept-ranges: bytes
+content-length: 5
+vary: Accept-Encoding,User-Agent
+content-range: bytes 10-14/5597
+content-type: text/html
+date: Fri, 29 Nov 2024 00:26:15 GMT
+server: Apache/2
+
