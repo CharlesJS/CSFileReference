@@ -183,3 +183,16 @@ let fixtures = [
 
     try await unwrap(fixture.constructor())
 }
+
+@Test func directFileDescriptorAccess() async throws {
+    let file = try FileDescriptor.open(fixtureURL.path, .readOnly)
+    defer { try? file.close() }
+
+    try SystemFileReference(fileDescriptor: file, closeWhenDone: false).withRawDescriptorAccess { fd in
+        #expect(fd == file)
+    }
+
+    try RawPOSIXFileReference(fileDescriptor: file.rawValue, closeWhenDone: false).withRawDescriptorAccess { fd in
+        #expect(fd == file.rawValue)
+    }
+}

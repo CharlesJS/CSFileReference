@@ -62,5 +62,11 @@ public final class RawPOSIXFileReference: FileReference {
             $0.isClosed = true
         }
     }
+
+    public func withRawDescriptorAccess<R>(_ closure: (Int32) throws -> R) rethrows -> R {
+        try self.mutex.withLock {
+            try closure($0.fd)
+        }
+    }
 }
 #endif

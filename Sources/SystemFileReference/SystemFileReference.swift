@@ -52,4 +52,10 @@ public final class SystemFileReference: FileReference {
             $0.isClosed = true
         }
     }
+
+    public func withRawDescriptorAccess<R>(_ closure: (FileDescriptor) throws -> R) rethrows -> R {
+        try self.mutex.withLock {
+            try closure($0.fd)
+        }
+    }
 }
