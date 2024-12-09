@@ -5,11 +5,15 @@
 //  Created by Charles Srstka on 11/28/24.
 //
 
-public final class SyncBytes: Collection, @unchecked Sendable {
+import CSDataProtocol
+
+public final class SyncBytes: DataProtocol, ContiguousBytes, @unchecked Sendable {
     private let buffer: UnsafeRawBufferPointer
 
     public var startIndex: Int { 0 }
     public var endIndex: Int { self.buffer.count }
+
+    public var regions: CollectionOfOne<SyncBytes> { CollectionOfOne(self) }
 
     internal init(capacity: Int, _ closure: (UnsafeMutableRawBufferPointer) async throws -> Int) async throws {
         let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: capacity, alignment: 1)

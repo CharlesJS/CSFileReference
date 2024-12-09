@@ -32,12 +32,16 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.0.2"),
+        .package(url: "https://github.com/CharlesJS/CSDataProtocol", from: "0.1.0"),
         .package(url: "https://github.com/CharlesJS/CSErrors", from: "1.2.9"),
         .package(url: "https://github.com/CharlesJS/SyncPolyfill", from: "0.1.0"),
     ],
     targets: [
         .target(
-            name: "FileReference"
+            name: "FileReference",
+            dependencies: [
+                "CSDataProtocol"
+            ]
         ),
         .target(
             name: "HTTPFileReference",

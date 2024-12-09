@@ -1,6 +1,15 @@
 {
-  "originHash" : "6fe52d39ac846ca581122403fbc290ef5822ee0d59b631162d7701e254022826",
+  "originHash" : "95ecd2184929453cff02d325292d69e080ce1d43631d7b9d2b9c277f1f94742b",
   "pins" : [
+    {
+      "identity" : "csdataprotocol",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CharlesJS/CSDataProtocol",
+      "state" : {
+        "revision" : "d63a07c50ae31256baa67e6f266ab36c4b16309f",
+        "version" : "0.1.0"
+      }
+    },
     {
       "identity" : "cserrors",
       "kind" : "remoteSourceControl",
