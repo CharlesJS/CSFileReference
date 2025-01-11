@@ -13,10 +13,18 @@ public protocol FileReference: Sendable {
 }
 
 public extension FileReference {
+    func getData(at offset: some BinaryInteger, length: some BinaryInteger) async throws -> SyncBytes {
+        try await self.getData(in: UInt64(offset)..<(UInt64(offset) + UInt64(length)))
+    }
+
     func getData(in range: Range<UInt64>) async throws -> SyncBytes {
         try await SyncBytes(capacity: range.count) {
             try await self.getBytes($0, in: range)
         }
+    }
+
+    func getAsyncBytes(at offset: some BinaryInteger, length: some BinaryInteger) throws -> AsyncBytes<Self> {
+        try self.getAsyncBytes(in: UInt64(offset)..<(UInt64(offset) + UInt64(length)))
     }
 
     func getAsyncBytes(in range: Range<UInt64>) throws -> AsyncBytes<Self> {
