@@ -13,6 +13,10 @@ import Glibc
 import Synchronization
 #endif
 
+#if canImport(unistd)
+import unistd
+#endif
+
 #if canImport(Darwin) || canImport(Glibc)
 import CSErrors
 import FileReference
