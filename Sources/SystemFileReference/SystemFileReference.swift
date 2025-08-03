@@ -11,8 +11,8 @@ import System
 
 @available(macOS 11.0, iOS 14.0, macCatalyst 14.0, tvOS 14.0, watchOS 7.0, visionOS 1.0, *)
 public final class SystemFileReference: FileReference {
-    public let mutex: Mutex<(fd: FileDescriptor, isClosed: Bool)>
-    public let closeWhenDone: Bool
+    private let mutex: Mutex<(fd: FileDescriptor, isClosed: Bool)>
+    private let closeWhenDone: Bool
     public let size: UInt64
 
     public convenience init(path: FilePath) throws {

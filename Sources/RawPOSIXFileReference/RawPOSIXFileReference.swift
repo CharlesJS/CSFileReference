@@ -22,8 +22,8 @@ import CSErrors
 import FileReference
 
 public final class RawPOSIXFileReference: FileReference {
-    public let mutex: Mutex<(fd: Int32, isClosed: Bool)>
-    public let closeWhenDone: Bool
+    private let mutex: Mutex<(fd: Int32, isClosed: Bool)>
+    private let closeWhenDone: Bool
     public let size: UInt64
 
     public convenience init(path: String) throws {
