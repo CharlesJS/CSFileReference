@@ -27,6 +27,10 @@ public final class SyncBytes: DataProtocol, ContiguousBytes, @unchecked Sendable
         }
     }
 
+    deinit {
+        self.buffer.deallocate()
+    }
+
     public subscript(position: Int) -> UInt8 { self.buffer[position] }
     public func index(after i: Int) -> Int { i + 1 }
 
