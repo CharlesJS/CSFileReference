@@ -1,6 +1,9 @@
+#if Foundation
+
 import Foundation
 import Testing
 @testable import HTTPFileReference
+
 
 @Test func successfulRangeRequest() async throws {
     let data = "This is a test.".data(using: .utf8)!
@@ -53,3 +56,6 @@ import Testing
         }
     }
 }
+
+#endif
+

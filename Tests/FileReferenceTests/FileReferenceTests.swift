@@ -32,8 +32,8 @@ let paddedURL: URL = try! {
     return url
 }()
 
-let fixtures = [
-    Fixture(name: "Raw Data") { RawDataFileReference(data: fixtureData) },
+#if Foundation
+let httpFixtures = [
     Fixture(name: "HTTP") {
         let mockHTTPConfig = MockURLProtocol.makeStubConfig { request in
             try MockURLProtocol.makeSuccessResponse(request: request, data: fixtureData)
@@ -41,9 +41,6 @@ let fixtures = [
 
         return try await HTTPFileReference(url: fixtureURL, configuration: mockHTTPConfig)
     },
-    Fixture(name: "POSIX File") { try RawPOSIXFileReference(path: fixtureURL.path) },
-    Fixture(name: "System File") { try SystemFileReference(path: FilePath(fixtureURL.path)) },
-    Fixture(name: "Raw Data Slice") { RawDataFileReference(data: paddedData).getSlice(in: paddedRange) },
     Fixture(name: "HTTP Slice") {
         let mockHTTPConfig = MockURLProtocol.makeStubConfig { request in
             try MockURLProtocol.makeSuccessResponse(request: request, data: paddedData)
@@ -51,10 +48,19 @@ let fixtures = [
 
         return try await HTTPFileReference(url: fixtureURL, configuration: mockHTTPConfig).getSlice(in: paddedRange)
     },
+]
+#else
+let httpFixtures: [Fixture] = []
+#endif
+
+let fixtures = [
+    Fixture(name: "Raw Data") { RawDataFileReference(data: fixtureData) },
+    Fixture(name: "POSIX File") { try RawPOSIXFileReference(path: fixtureURL.path) },
+    Fixture(name: "System File") { try SystemFileReference(path: FilePath(fixtureURL.path)) },
+    Fixture(name: "Raw Data Slice") { RawDataFileReference(data: paddedData).getSlice(in: paddedRange) },
     Fixture(name: "POSIX File Slice") { try RawPOSIXFileReference(path: paddedURL.path).getSlice(in: paddedRange) },
     Fixture(name: "System File Slice") { try SystemFileReference(path: FilePath(paddedURL.path)).getSlice(in: paddedRange) }
-
-]
+] + httpFixtures
 
 @Test(.serialized, arguments: fixtures) func testGetData(fixture: Fixture) async throws {
     let fileRef = try await fixture.constructor()

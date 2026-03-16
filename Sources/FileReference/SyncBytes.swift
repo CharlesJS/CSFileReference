@@ -5,9 +5,7 @@
 //  Created by Charles Srstka on 11/28/24.
 //
 
-import CSDataProtocol
-
-public final class SyncBytes: DataProtocol, ContiguousBytes, @unchecked Sendable {
+public final class SyncBytes: BidirectionalCollection, @unchecked Sendable {
     private let buffer: UnsafeRawBufferPointer
 
     public var startIndex: Int { 0 }
@@ -33,6 +31,7 @@ public final class SyncBytes: DataProtocol, ContiguousBytes, @unchecked Sendable
 
     public subscript(position: Int) -> UInt8 { self.buffer[position] }
     public func index(after i: Int) -> Int { i + 1 }
+    public func index(before i: Int) -> Int { i - 1 }
 
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         try body(self.buffer)
@@ -42,3 +41,14 @@ public final class SyncBytes: DataProtocol, ContiguousBytes, @unchecked Sendable
         try self.buffer.withMemoryRebound(to: UInt8.self) { try body($0) }
     }
 }
+
+#if Foundation
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
+
+extension SyncBytes: ContiguousBytes, DataProtocol {}
+#endif

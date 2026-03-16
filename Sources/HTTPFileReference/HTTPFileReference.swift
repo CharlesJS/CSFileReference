@@ -7,6 +7,8 @@
 
 import FileReference
 
+#if Foundation
+
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #else
@@ -76,3 +78,5 @@ public struct HTTPFileReference: FileReference {
 
     public mutating func close() { self.isClosed = true }
 }
+
+#endif
