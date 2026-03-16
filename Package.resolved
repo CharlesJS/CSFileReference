@@ -1,13 +1,13 @@
 {
-  "originHash" : "f5bed1b83ed699ca01fbec56170b0803c37c8eaccada729fdd2d9156dc53b518",
+  "originHash" : "f44a6a42671c15f4115ce3a4d0d1e37104685760baf9218557da053aa5bd3373",
   "pins" : [
     {
       "identity" : "cserrors",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CharlesJS/CSErrors",
       "state" : {
-        "revision" : "776b7813f14e4618701b3c4f33c7ff27be53dfc0",
-        "version" : "2.0.0"
+        "revision" : "7426dd06aaeedf468b768f77f48b3f52e87abc5d",
+        "version" : "2.1.0"
       }
     },
     {
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "671108c96644956dddcd89dd59c203dcdb36cec7",
         "version" : "1.1.4"
+      }
+    },
+    {
+      "identity" : "swift-system",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-system",
+      "state" : {
+        "revision" : "7c6ad0fc39d0763e0b699210e4124afd5041c5df",
+        "version" : "1.6.4"
       }
     },
     {

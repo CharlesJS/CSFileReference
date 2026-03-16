@@ -5,13 +5,42 @@
 //  Created by Charles Srstka on 11/30/24.
 //
 
-import Foundation
 import SyncPolyfill
+
+#if canImport(FoundationEssentials) && canImport(FoundationNetworking)
+import FoundationEssentials
+import FoundationNetworking
+#else
+import Foundation
+#endif
 
 final class MockURLProtocol: URLProtocol {
     typealias Handler = (URLRequest) throws -> (HTTPURLResponse, Data)
 
+#if canImport(Darwin)
     private static let mockUUIDHeader = "com-charlessoft-csfilereference-mock-uuid"
+#else
+    // Unfortunately, a bug prevents URLSessionConfiguration.httpAdditionalHeaders from working properly with
+    // custom URL protocols on swift-corelibs-foundation, so we need this hack instead
+    private final class StubCache: URLCache, @unchecked Sendable {
+        let uuid: UUID
+
+        init(uuid: UUID) {
+            self.uuid = uuid
+            super.init(memoryCapacity: 0, diskCapacity: 0, diskPath: nil)
+        }
+
+        override func cachedResponse(for request: URLRequest) -> CachedURLResponse? {
+            CachedURLResponse(response: URLResponse(url: FileManager.default.temporaryDirectory, mimeType: nil, expectedContentLength: 0, textEncodingName: nil), data: self.uuid.uuidString.data(using: .utf8)!)
+        }
+    }
+
+    private let uuid: String?
+    required init(request: URLRequest, cachedResponse: CachedURLResponse?, client: (any URLProtocolClient)?) {
+        self.uuid = cachedResponse.flatMap { String(data: $0.data, encoding: .utf8) }
+        super.init(request: request, cachedResponse: cachedResponse, client: client)
+    }
+#endif
 
     private struct State {
         var handlers: [String : Handler] = [:]
@@ -35,8 +64,13 @@ final class MockURLProtocol: URLProtocol {
         Self.stateMutex.withLock { state in
             let request = self.request
 
-            guard let uuid = request.value(forHTTPHeaderField: Self.mockUUIDHeader),
-                  let handler = state.handlers[uuid] else {
+#if canImport(Darwin)
+            let uuid = request.value(forHTTPHeaderField: Self.mockUUIDHeader)
+#else
+            let uuid = self.uuid
+#endif
+
+            guard let uuid, let handler = state.handlers[uuid] else {
                 assertionFailure("Received unhandled URLRequest")
                 return
             }
@@ -59,7 +93,11 @@ final class MockURLProtocol: URLProtocol {
 
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [Self.self]
+#if canImport(Darwin)
         configuration.httpAdditionalHeaders = [Self.mockUUIDHeader: uuid.uuidString]
+#else
+        configuration.urlCache = StubCache(uuid: uuid)
+#endif
 
         MockURLProtocol.setHandler(handler, for: uuid)
 

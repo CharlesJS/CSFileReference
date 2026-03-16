@@ -9,7 +9,8 @@ import FileReference
 
 #if Foundation
 
-#if canImport(FoundationNetworking)
+#if canImport(FoundationEssentials) && canImport(FoundationNetworking)
+import FoundationEssentials
 import FoundationNetworking
 #else
 import Foundation

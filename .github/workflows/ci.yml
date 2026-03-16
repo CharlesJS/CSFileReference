@@ -17,6 +17,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+    - uses: SwiftyLab/setup-swift@latest
     - name: Determine traits flags
       id: traits
       run: |

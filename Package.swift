@@ -1,4 +1,4 @@
-// swift-tools-version: 6.1
+// swift-tools-version: 6.2
 
 import PackageDescription
 
@@ -36,9 +36,10 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.1.3"),
+        .package(url: "https://github.com/apple/swift-system", from: "1.6.1"),
         .package(
             url: "https://github.com/CharlesJS/CSErrors", 
-            from: "2.0.0",
+            from: "2.1.0",
             traits: [.trait(name: "Foundation", condition: .when(traits: ["Foundation"]))]
         ),
         .package(url: "https://github.com/CharlesJS/SyncPolyfill", from: "0.1.1"),
@@ -66,6 +67,7 @@ let package = Package(
             name: "SystemFileReference",
             dependencies: [
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
+                .product(name: "SystemPackage", package: "swift-system", condition: .when(platforms: [.linux])),
                 "FileReference",
                 "SyncPolyfill",
             ]
@@ -73,6 +75,7 @@ let package = Package(
         .testTarget(
             name: "FileReferenceTests",
             dependencies: [
+                .product(name: "SystemPackage", package: "swift-system", condition: .when(platforms: [.linux])),
                 "FileReference",
                 "HTTPFileReference",
                 "RawPOSIXFileReference",
