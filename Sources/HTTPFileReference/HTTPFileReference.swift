@@ -7,7 +7,10 @@
 
 import FileReference
 
-#if canImport(FoundationNetworking)
+#if Foundation
+
+#if canImport(FoundationEssentials) && canImport(FoundationNetworking)
+import FoundationEssentials
 import FoundationNetworking
 #else
 import Foundation
@@ -76,3 +79,5 @@ public struct HTTPFileReference: FileReference {
 
     public mutating func close() { self.isClosed = true }
 }
+
+#endif

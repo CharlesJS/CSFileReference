@@ -17,6 +17,12 @@ public struct AsyncBytes<FileReferenceType: FileReference>: Sendable, AsyncSeque
         self.capacity = capacity
     }
 
+#if !canImport(Darwin)
+    public var lines: some AsyncSequence<String, any Error> {
+        LineSequence(bytes: self)
+    }
+#endif
+
     public func makeAsyncIterator() -> AsyncIterator {
         AsyncIterator(fileReference: self.fileReference, range: self.range, capacity: self.capacity)
     }

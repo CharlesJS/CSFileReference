@@ -8,13 +8,11 @@
 #if canImport(Darwin)
 import Darwin
 import SyncPolyfill
+private let sysClose = Darwin.close
 #elseif canImport(Glibc)
 import Glibc
 import Synchronization
-#endif
-
-#if canImport(unistd)
-import unistd
+private let sysClose = Glibc.close
 #endif
 
 #if canImport(Darwin) || canImport(Glibc)
@@ -44,7 +42,7 @@ public final class RawPOSIXFileReference: FileReference {
 
     deinit {
         if self.closeWhenDone {
-            _ = self.mutex.withLock { unistd.close($0.fd) }
+            _ = self.mutex.withLock { sysClose($0.fd) }
         }
     }
 
@@ -53,7 +51,7 @@ public final class RawPOSIXFileReference: FileReference {
             if $0.isClosed { throw FileReferenceError.closed }
             let fd = $0.fd
 
-            try callPOSIXFunction(expect: .nonNegative) { lseek(fd, Int64(range.lowerBound), SEEK_SET) }
+            try callPOSIXFunction(expect: .nonNegative) { lseek(fd, off_t(range.lowerBound), SEEK_SET) }
             return try callPOSIXFunction(expect: .nonNegative) {
                 read(fd, buffer.baseAddress, min(buffer.count, range.count))
             }
@@ -62,7 +60,7 @@ public final class RawPOSIXFileReference: FileReference {
 
     public func close() throws {
         self.mutex.withLock {
-            _ = unistd.close($0.fd)
+            _ = sysClose($0.fd)
             $0.isClosed = true
         }
     }

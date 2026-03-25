@@ -1,22 +1,13 @@
 {
-  "originHash" : "95ecd2184929453cff02d325292d69e080ce1d43631d7b9d2b9c277f1f94742b",
+  "originHash" : "f44a6a42671c15f4115ce3a4d0d1e37104685760baf9218557da053aa5bd3373",
   "pins" : [
-    {
-      "identity" : "csdataprotocol",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CharlesJS/CSDataProtocol",
-      "state" : {
-        "revision" : "d63a07c50ae31256baa67e6f266ab36c4b16309f",
-        "version" : "0.1.0"
-      }
-    },
     {
       "identity" : "cserrors",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CharlesJS/CSErrors",
       "state" : {
-        "revision" : "a29b22f124d059030f6e65caacf3e02a67ca6dfb",
-        "version" : "1.2.9"
+        "revision" : "7426dd06aaeedf468b768f77f48b3f52e87abc5d",
+        "version" : "2.1.0"
       }
     },
     {
@@ -24,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-async-algorithms",
       "state" : {
-        "revision" : "5c8bd186f48c16af0775972700626f0b74588278",
-        "version" : "1.0.2"
+        "revision" : "9d349bcc328ac3c31ce40e746b5882742a0d1272",
+        "version" : "1.1.3"
       }
     },
     {
@@ -38,12 +29,21 @@
       }
     },
     {
+      "identity" : "swift-system",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-system",
+      "state" : {
+        "revision" : "7c6ad0fc39d0763e0b699210e4124afd5041c5df",
+        "version" : "1.6.4"
+      }
+    },
+    {
       "identity" : "syncpolyfill",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CharlesJS/SyncPolyfill",
       "state" : {
-        "revision" : "aa37b7f0d80031c0081aa3a8de7e0fee5717f806",
-        "version" : "0.1.0"
+        "revision" : "c18c41fa1b635def5dda128c39243542b187116a",
+        "version" : "0.1.2"
       }
     }
   ],

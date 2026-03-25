@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 
 import PackageDescription
 
@@ -17,9 +17,10 @@ let package = Package(
             name: "FileReference",
             targets: ["FileReference"]
         ),
+        // NOTE: HTTPFileReference is only available when the Foundation trait is enabled
         .library(
             name: "HTTPFileReference",
-            targets: ["HTTPFileReference"]
+            targets: ["HTTPFileReference"],
         ),
         .library(
             name: "RawPOSIXFileReference",
@@ -30,24 +31,29 @@ let package = Package(
             targets: ["SystemFileReference"]
         )
     ],
+    traits: [
+        "Foundation"
+    ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.0.2"),
-        .package(url: "https://github.com/CharlesJS/CSDataProtocol", from: "0.1.0"),
-        .package(url: "https://github.com/CharlesJS/CSErrors", from: "1.2.9"),
-        .package(url: "https://github.com/CharlesJS/SyncPolyfill", from: "0.1.0"),
+        .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.1.3"),
+        .package(url: "https://github.com/apple/swift-system", from: "1.6.1"),
+        .package(
+            url: "https://github.com/CharlesJS/CSErrors", 
+            from: "2.1.0",
+            traits: [.trait(name: "Foundation", condition: .when(traits: ["Foundation"]))]
+        ),
+        .package(url: "https://github.com/CharlesJS/SyncPolyfill", from: "0.1.1"),
     ],
     targets: [
         .target(
             name: "FileReference",
-            dependencies: [
-                "CSDataProtocol"
-            ]
+            dependencies: []
         ),
         .target(
             name: "HTTPFileReference",
             dependencies: [
                 "FileReference"
-            ]
+            ],
         ),
         .target(
             name: "RawPOSIXFileReference",
@@ -61,6 +67,7 @@ let package = Package(
             name: "SystemFileReference",
             dependencies: [
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
+                .product(name: "SystemPackage", package: "swift-system", condition: .when(platforms: [.linux])),
                 "FileReference",
                 "SyncPolyfill",
             ]
@@ -68,6 +75,7 @@ let package = Package(
         .testTarget(
             name: "FileReferenceTests",
             dependencies: [
+                .product(name: "SystemPackage", package: "swift-system", condition: .when(platforms: [.linux])),
                 "FileReference",
                 "HTTPFileReference",
                 "RawPOSIXFileReference",
