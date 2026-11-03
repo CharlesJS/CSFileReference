@@ -1,5 +1,6 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 6.3
 
+import CompilerPluginSupport
 import PackageDescription
 
 let package = Package(
@@ -29,25 +30,26 @@ let package = Package(
         .library(
             name: "SystemFileReference",
             targets: ["SystemFileReference"]
-        )
+        ),
     ],
     traits: [
-        "Foundation"
+        "Foundation",
+        "Macros",
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.1.3"),
         .package(url: "https://github.com/apple/swift-system", from: "1.6.1"),
         .package(
             url: "https://github.com/CharlesJS/CSErrors", 
-            from: "2.1.0",
+            from: "2.1.1",
             traits: [.trait(name: "Foundation", condition: .when(traits: ["Foundation"]))]
         ),
-        .package(url: "https://github.com/CharlesJS/SyncPolyfill", from: "0.1.1"),
+        .package(url: "https://github.com/CharlesJS/SyncPolyfill", from: "0.2.1"),
+        .package(url: "https://github.com/swiftlang/swift-syntax", "604.0.0"..<"900.0.0"),
     ],
     targets: [
         .target(
             name: "FileReference",
-            dependencies: []
         ),
         .target(
             name: "HTTPFileReference",
@@ -67,9 +69,10 @@ let package = Package(
             name: "SystemFileReference",
             dependencies: [
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
-                .product(name: "SystemPackage", package: "swift-system", condition: .when(platforms: [.linux])),
                 "FileReference",
                 "SyncPolyfill",
+                .product(name: "SystemPackage", package: "swift-system", condition: .when(platforms: [.linux])),
+                .target(name: "SystemFileReferenceMacros", condition: .when(traits: ["Macros"]))
             ]
         ),
         .testTarget(
@@ -84,6 +87,20 @@ let package = Package(
             ],
             resources: [
                 .copy("Fixtures"),
+            ]
+        ),
+        .macro(
+            name: "SystemFileReferenceMacros",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax", condition: .when(traits: ["Macros"])),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax", condition: .when(traits: ["Macros"])),
+            ]
+        ),
+        .testTarget(
+            name: "SystemFileReferenceMacrosTests",
+            dependencies: [
+                .target(name: "SystemFileReferenceMacros", condition: .when(traits: ["Macros"])),
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax", condition: .when(traits: ["Macros"]))
             ]
         ),
     ]

@@ -40,7 +40,8 @@ let paddedURL: URL = try! {
 }()
 
 #if Foundation
-let httpFixtures = [
+private let foundationFixtures = [
+    Fixture(name: "URL") { try SystemFileReference(url: fixtureURL) },
     Fixture(name: "HTTP") {
         let mockHTTPConfig = MockURLProtocol.makeStubConfig { request in
             try MockURLProtocol.makeSuccessResponse(request: request, data: fixtureData)
@@ -57,7 +58,7 @@ let httpFixtures = [
     },
 ]
 #else
-let httpFixtures: [Fixture] = []
+private let foundationFixtures: [Fixture] = []
 #endif
 
 let fixtures = [
@@ -67,7 +68,7 @@ let fixtures = [
     Fixture(name: "Raw Data Slice") { RawDataFileReference(data: paddedData).getSlice(in: paddedRange) },
     Fixture(name: "POSIX File Slice") { try RawPOSIXFileReference(path: paddedURL.path).getSlice(in: paddedRange) },
     Fixture(name: "System File Slice") { try SystemFileReference(path: FilePath(paddedURL.path)).getSlice(in: paddedRange) }
-] + httpFixtures
+] + foundationFixtures
 
 @Suite(.serialized) struct FileReferenceTests {
     @Test(.serialized, arguments: fixtures) func testGetData(fixture: Fixture) async throws {
@@ -306,6 +307,16 @@ let fixtures = [
             #expect(fd == file.rawValue)
         }
     }
+
+#if Foundation
+    @Test func errorsOnNonFileURL() async throws {
+        let url = try #require(URL(string: "https://google.com"))
+
+        #expect(throws: CocoaError(.fileReadUnsupportedScheme, userInfo: [NSURLErrorKey: url])) {
+            try SystemFileReference(url: url)
+        }
+    }
+#endif
 
     private func readBytes<F: FileReference>(_ ref: F, _ range: Range<UInt64>) async throws -> Data {
         let buf = UnsafeMutableRawBufferPointer.allocate(byteCount: range.count, alignment: 1)

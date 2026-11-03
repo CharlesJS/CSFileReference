@@ -19,7 +19,7 @@ private let sysClose = Glibc.close
 import CSErrors
 import FileReference
 
-public final class RawPOSIXFileReference: FileReference {
+public final class RawPOSIXFileReference: SyncFileReference {
     private let mutex: Mutex<(fd: Int32, isClosed: Bool)>
     private let closeWhenDone: Bool
     public let size: UInt64
@@ -46,7 +46,7 @@ public final class RawPOSIXFileReference: FileReference {
         }
     }
 
-    public func getBytes(_ buffer: UnsafeMutableRawBufferPointer, in range: Range<UInt64>) async throws -> Int {
+    public func syncGetBytes(_ buffer: UnsafeMutableRawBufferPointer, in range: Range<UInt64>) throws -> Int {
         return try self.mutex.withLock {
             if $0.isClosed { throw FileReferenceError.closed }
             let fd = $0.fd
