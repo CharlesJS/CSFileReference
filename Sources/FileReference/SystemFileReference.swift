@@ -5,7 +5,6 @@
 //  Created by Charles Srstka on 11/28/24.
 //
 
-import FileReference
 import SyncPolyfill
 
 #if canImport(SystemPackage)
@@ -20,16 +19,6 @@ import FoundationEssentials
 #else
 import Foundation
 #endif
-#endif
-
-#if Macros
-
-@attached(peer, names: overloaded)
-public macro SystemFileReference() = #externalMacro(
-    module: "SystemFileReferenceMacros",
-    type: "SystemFileReferenceMacro"
-)
-
 #endif
 
 @available(macOS 11.0, iOS 14.0, macCatalyst 14.0, tvOS 14.0, watchOS 7.0, visionOS 1.0, *)
@@ -55,7 +44,11 @@ public final class SystemFileReference: SyncFileReference {
 #if Foundation
     public convenience init(url: URL) throws {
         guard url.isFileURL else {
+#if canImport(Darwin)
             throw CocoaError(.fileReadUnsupportedScheme, userInfo: [NSURLErrorKey : url])
+#else
+            throw CocoaError(.fileReadUnsupportedScheme, userInfo: ["NSURL" : url])
+#endif
         }
 
         guard #available(macOS 13.0, iOS 16.0, macCatalyst 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *) else {

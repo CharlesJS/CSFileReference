@@ -10,4 +10,4 @@ jobs:
   run-ci:
     uses: CharlesJS/shared-workflows/.github/workflows/ci.yml@main
     with: 
-      traits: '["Foundation", "Macros"]'
+      traits: '["none", "Macros", "Foundation", "Foundation,Macros", "Networking", "Networking,Macros"]'

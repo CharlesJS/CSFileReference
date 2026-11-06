@@ -11,8 +11,8 @@ import SwiftCompilerPlugin
 import SwiftSyntaxMacros
 
 @main
-struct SystemFileReferenceMacroCompilerPlugin: CompilerPlugin {
-    let providingMacros: [any Macro.Type] = [SystemFileReferenceMacro.self]
+struct FileReferenceMacroCompilerPlugin: CompilerPlugin {
+    let providingMacros: [any Macro.Type] = [FileReferenceMacro.self]
 }
 #else
 @main

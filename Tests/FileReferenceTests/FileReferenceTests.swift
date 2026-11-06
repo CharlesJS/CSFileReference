@@ -17,9 +17,6 @@ import System
 #endif
 
 @testable import FileReference
-@testable import HTTPFileReference
-@testable import RawPOSIXFileReference
-@testable import SystemFileReference
 
 struct Fixture: CustomTestStringConvertible, Identifiable, Sendable {
     let name: String
@@ -42,6 +39,13 @@ let paddedURL: URL = try! {
 #if Foundation
 private let foundationFixtures = [
     Fixture(name: "URL") { try SystemFileReference(url: fixtureURL) },
+]
+#else
+private let foundationFixtures: [Fixture] = []
+#endif
+
+#if Networking
+private let networkingFixtures: [Fixture] = [
     Fixture(name: "HTTP") {
         let mockHTTPConfig = MockURLProtocol.makeStubConfig { request in
             try MockURLProtocol.makeSuccessResponse(request: request, data: fixtureData)
@@ -58,7 +62,7 @@ private let foundationFixtures = [
     },
 ]
 #else
-private let foundationFixtures: [Fixture] = []
+private let networkingFixtures: [Fixture] = []
 #endif
 
 let fixtures = [
@@ -68,7 +72,7 @@ let fixtures = [
     Fixture(name: "Raw Data Slice") { RawDataFileReference(data: paddedData).getSlice(in: paddedRange) },
     Fixture(name: "POSIX File Slice") { try RawPOSIXFileReference(path: paddedURL.path).getSlice(in: paddedRange) },
     Fixture(name: "System File Slice") { try SystemFileReference(path: FilePath(paddedURL.path)).getSlice(in: paddedRange) }
-] + foundationFixtures
+] + foundationFixtures + networkingFixtures
 
 @Suite(.serialized) struct FileReferenceTests {
     @Test(.serialized, arguments: fixtures) func testGetData(fixture: Fixture) async throws {
@@ -312,9 +316,15 @@ let fixtures = [
     @Test func errorsOnNonFileURL() async throws {
         let url = try #require(URL(string: "https://google.com"))
 
+#if canImport(Darwin)
         #expect(throws: CocoaError(.fileReadUnsupportedScheme, userInfo: [NSURLErrorKey: url])) {
             try SystemFileReference(url: url)
         }
+#else
+        #expect(throws: CocoaError(.fileReadUnsupportedScheme, userInfo: ["NSURL": url])) {
+            try SystemFileReference(url: url)
+        }
+#endif
     }
 #endif
 

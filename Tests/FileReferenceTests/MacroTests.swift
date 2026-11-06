@@ -15,15 +15,14 @@ import System
 
 import FileReference
 import Foundation
-import SystemFileReference
 import Testing
 
-@SystemFileReference
+@FileReference
 func syncStandaloneFunction<F: FileReference>(file: F, closure: (F) throws -> Void) throws {
     try closure(file)
 }
 
-@SystemFileReference
+@FileReference
 func asyncStandaloneFunction<F: FileReference>(file: F, closure: (F) throws -> Void) async throws {
     try closure(file)
 }
@@ -31,14 +30,14 @@ func asyncStandaloneFunction<F: FileReference>(file: F, closure: (F) throws -> V
 class SyncFileHolder<F: FileReference> {
     let file: F
 
-    @SystemFileReference
+    @FileReference
     init(file: F) throws { self.file = file }
 }
 
 struct AsyncFileHolder<F: FileReference> {
     let file: F
 
-    @SystemFileReference
+    @FileReference
     init(file: F) async throws { self.file = file }
 }
 

@@ -17,7 +17,6 @@ private let sysClose = Glibc.close
 
 #if canImport(Darwin) || canImport(Glibc)
 import CSErrors
-import FileReference
 
 public final class RawPOSIXFileReference: SyncFileReference {
     private let mutex: Mutex<(fd: Int32, isClosed: Bool)>

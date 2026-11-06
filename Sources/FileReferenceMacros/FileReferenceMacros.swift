@@ -1,5 +1,5 @@
 //
-//  SystemFileReferenceMacros.swift
+//  FileReferenceMacros.swift
 //  CSFileReference
 //
 //  Created by Charles Srstka on 10/26/26.
@@ -10,19 +10,26 @@
 import SwiftSyntax
 import SwiftSyntaxMacros
 
-private protocol FuncOrInit: DeclSyntaxProtocol, WithAttributesSyntax, WithGenericParametersSyntax, WithOptionalCodeBlockSyntax {
+private protocol FuncOrInit:
+    DeclSyntaxProtocol, WithAttributesSyntax, WithGenericParametersSyntax, WithOptionalCodeBlockSyntax {
     var signature: FunctionSignatureSyntax { get set }
 }
 
 extension FunctionDeclSyntax: FuncOrInit {}
 extension InitializerDeclSyntax: FuncOrInit {}
 
-public struct SystemFileReferenceMacro: PeerMacro {
+public struct FileReferenceMacro: PeerMacro {
     public enum Error: Swift.Error {
         case notAFunctionOrInitializer
         case noFileReferenceArgument
         case functionNotThrowing
     }
+
+#if Foundation
+    static let defaultGenerators: [Generator] = [.filePath, .fileDescriptor, .url]
+#else
+    static let defaultGenerators: [Generator] = [.filePath, .fileDescriptor]
+#endif
 
     public static func expansion(
         of node: SwiftSyntax.AttributeSyntax,
@@ -30,7 +37,7 @@ public struct SystemFileReferenceMacro: PeerMacro {
         in context: some SwiftSyntaxMacros.MacroExpansionContext
     ) throws -> [DeclSyntax] {
         if let function = declaration.as(FunctionDeclSyntax.self) {
-            try self.expansion(function: function, context: context)
+            try self.expansion(function: function, node: node, context: context)
         } else if let function = declaration.as(InitializerDeclSyntax.self) {
             if context.lexicalContext.first?.is(ClassDeclSyntax.self) == true,
                !function.modifiers.contains(where: { $0.name == .keyword(.convenience) }) {
@@ -40,10 +47,11 @@ public struct SystemFileReferenceMacro: PeerMacro {
                         .with(\.modifiers, function.modifiers + [
                             DeclModifierSyntax(name: .keyword(.convenience).with(\.trailingTrivia, .spaces(1)))
                         ]),
+                    node: node,
                     context: context
                 )
             } else {
-                try self.expansion(function: function, context: context)
+                try self.expansion(function: function, node: node, context: context)
             }
         } else {
             throw Error.notAFunctionOrInitializer
@@ -52,8 +60,11 @@ public struct SystemFileReferenceMacro: PeerMacro {
 
     private static func expansion(
         function: some FuncOrInit,
+        node: SwiftSyntax.AttributeSyntax,
         context: some SwiftSyntaxMacros.MacroExpansionContext
     ) throws -> [DeclSyntax] {
+        let generators = Generator.parse(node: node) ?? Self.defaultGenerators
+
         guard let (argIndex, contextType) = self.fileRefIndex(function: function, context: context) else {
             throw Error.noFileReferenceArgument
         }
@@ -62,25 +73,9 @@ public struct SystemFileReferenceMacro: PeerMacro {
             throw Error.functionNotThrowing
         }
 
-        let funcs = [
-            self.makeFunc(from: function, argIndex: argIndex, contextType: contextType, name: "path", type: "FilePath"),
-            self.makeFunc(
-                from: function,
-                argIndex: argIndex,
-                contextType: contextType,
-                name: "fileDescriptor",
-                type: "FileDescriptor",
-                additionalParams: Self.param(type: "Bool", name: "closeWhenDone")
-            )
-        ]
-
-#if Foundation
-        return funcs + [
-            self.makeFunc(from: function, argIndex: argIndex, contextType: contextType, name: "url", type: "URL")
-        ]
-#else
-        return funcs
-#endif
+        return generators.map {
+            self.makeFunc(from: function, argIndex: argIndex, contextType: contextType, generator: $0)
+        }
     }
 
     private static func fileRefIndex(
@@ -145,17 +140,18 @@ public struct SystemFileReferenceMacro: PeerMacro {
         from funcOrInit: some FuncOrInit,
         argIndex: FunctionParameterListSyntax.Index,
         contextType: String?,
-        name: String,
-        type: String,
-        additionalParams: FunctionParameterSyntax...
+        generator: Generator
     ) -> DeclSyntax {
         let sig = funcOrInit.signature
         let isAsync = sig.effectSpecifiers?.asyncSpecifier?.tokenKind ~= .keyword(SwiftSyntax.Keyword.async)
 
         let params = sig.parameterClause.parameters
+        let additionalParams = generator.additionalParams
         let arg = params[argIndex]
-        let newTypeIdentifier = IdentifierTypeSyntax(name: .identifier(type))
-        let newArg = arg.with(\.firstName, TokenSyntax.identifier(name)).with(\.type, TypeSyntax(newTypeIdentifier))
+        let newTypeIdentifier = IdentifierTypeSyntax(name: .identifier(generator.typeName))
+        let newArg = arg
+            .with(\.firstName, TokenSyntax.identifier(generator.parameterName))
+            .with(\.type, TypeSyntax(newTypeIdentifier))
         var newParams = params.with(\.[argIndex], newArg)
         for (offset, eachParam) in additionalParams.enumerated() {
             newParams.insert(eachParam, at: newParams.index(argIndex, offsetBy: offset + 1))
@@ -169,13 +165,14 @@ public struct SystemFileReferenceMacro: PeerMacro {
             }
         }
 
+        let fileRefTypeName = generator.fileReferenceTypeName
         let lastAdditionalIndex = newParams.index(argIndex, offsetBy: additionalParams.count)
 
         let callParams: [String] = zip(newParams.indices, newParams).compactMap { index, param in
             let refParams = ([param] + additionalParams).map { "\($0.firstName): \($0.firstName)" }.joined(separator: ",")
 
             return if index == argIndex {
-                "\(params[index].firstName): SystemFileReference(\(refParams))"
+                "\(params[index].firstName): \(fileRefTypeName)(\(refParams))"
             } else if index < argIndex || index > lastAdditionalIndex {
                 "\(param.firstName): \(param.firstName)"
             } else {
@@ -201,11 +198,11 @@ public struct SystemFileReferenceMacro: PeerMacro {
 
         if let genericType = arg.type.as(IdentifierTypeSyntax.self)?.name.text {
             for eachIndex in newParams.indices {
-                self.replaceType(genericType, in: &newParams[eachIndex].type, with: "SystemFileReference")
+                self.replaceType(genericType, in: &newParams[eachIndex].type, with: fileRefTypeName)
             }
 
             if var unwrappedReturnClause = returnClause {
-                self.replaceType(genericType, in: &unwrappedReturnClause.type, with: "SystemFileReference")
+                self.replaceType(genericType, in: &unwrappedReturnClause.type, with: fileRefTypeName)
                 returnClause = unwrappedReturnClause
             }
         }
@@ -216,19 +213,13 @@ public struct SystemFileReferenceMacro: PeerMacro {
             .with(\.body, .init(stringLiteral: newBody))
             .with(\.attributes, [])
             .with(\.genericParameterClause, self.adjustGenericParameterClause(funcOrInit: funcOrInit, argIndex: argIndex))
-            .with(\.genericWhereClause, self.adjustGenericWhereClause(funcOrInit: funcOrInit, contextType: contextType))
+            .with(\.genericWhereClause, self.adjustGenericWhereClause(
+                funcOrInit: funcOrInit,
+                contextType: contextType,
+                fileRefTypeName: fileRefTypeName
+            ))
 
         return DeclSyntax(newFunction)
-    }
-
-    private static func param(type: String, name: String) -> FunctionParameterSyntax {
-        FunctionParameterSyntax(
-            attributes: AttributeListSyntax(),
-            modifiers: DeclModifierListSyntax(),
-            firstName: TokenSyntax.identifier(name),
-            colon: TokenSyntax.colonToken(trailingTrivia: .space),
-            type: TypeSyntax(IdentifierTypeSyntax(name: .identifier(type)))
-        )
     }
 
     private static func replaceType(_ oldType: String, in type: inout TypeSyntax, with newType: String) {
@@ -289,7 +280,8 @@ public struct SystemFileReferenceMacro: PeerMacro {
 
     private static func adjustGenericWhereClause(
         funcOrInit: some FuncOrInit,
-        contextType: String?
+        contextType: String?,
+        fileRefTypeName: String
     ) -> GenericWhereClauseSyntax? {
         guard let contextType else { return funcOrInit.genericWhereClause }
 
@@ -297,7 +289,7 @@ public struct SystemFileReferenceMacro: PeerMacro {
             SameTypeRequirementSyntax(
                 leftType: .type(TypeSyntax(IdentifierTypeSyntax(name: TokenSyntax(stringLiteral: contextType)))),
                 equal: .binaryOperator("=="),
-                rightType: .type(TypeSyntax(IdentifierTypeSyntax(name: TokenSyntax(stringLiteral: "SystemFileReference"))))
+                rightType: .type(TypeSyntax(IdentifierTypeSyntax(name: TokenSyntax(stringLiteral: fileRefTypeName))))
             )
         )
 
