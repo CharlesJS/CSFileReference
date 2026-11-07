@@ -12,11 +12,50 @@ import SwiftSyntaxMacros
 
 private protocol FuncOrInit:
     DeclSyntaxProtocol, WithAttributesSyntax, WithGenericParametersSyntax, WithOptionalCodeBlockSyntax {
+    var keyword: TokenSyntax { get set }
     var signature: FunctionSignatureSyntax { get set }
 }
 
-extension FunctionDeclSyntax: FuncOrInit {}
-extension InitializerDeclSyntax: FuncOrInit {}
+extension FunctionDeclSyntax: FuncOrInit {
+    var keyword: TokenSyntax {
+        get { self.funcKeyword }
+        set { self.funcKeyword = newValue }
+    }
+}
+
+extension InitializerDeclSyntax: FuncOrInit {
+    var keyword: TokenSyntax {
+        get { self.initKeyword }
+        set { self.initKeyword = newValue }
+    }
+}
+
+private final class WhitespaceStripper: SyntaxRewriter {
+    override func visit(_ token: TokenSyntax) -> TokenSyntax {
+        token
+            .with(\.leadingTrivia, Trivia(pieces: token.leadingTrivia.filter { !$0.isWhitespace }))
+            .with(\.trailingTrivia, Trivia(pieces: token.trailingTrivia.filter { !$0.isWhitespace }))
+    }
+}
+
+private final class AsyncToSync: SyntaxRewriter {
+    private static let mapping = ["getData" : "syncGetData", "getBytes": "syncGetBytes"]
+    private(set) var cannotConvert = false
+
+    override func visit(_ awaitSyntax: AwaitExprSyntax) -> ExprSyntax {
+        if let function = awaitSyntax.expression.as(FunctionCallExprSyntax.self) {
+            if var memberAccess = function.calledExpression.as(MemberAccessExprSyntax.self),
+               let mapped = Self.mapping[memberAccess.declName.baseName.text] {
+                memberAccess.declName.baseName = .identifier(mapped)
+                return ExprSyntax(function.with(\.calledExpression, ExprSyntax(memberAccess)))
+            } else {
+                self.cannotConvert = true
+            }
+        }
+
+        return ExprSyntax(awaitSyntax)
+    }
+}
 
 public struct FileReferenceMacro: PeerMacro {
     public enum Error: Swift.Error {
@@ -39,20 +78,7 @@ public struct FileReferenceMacro: PeerMacro {
         if let function = declaration.as(FunctionDeclSyntax.self) {
             try self.expansion(function: function, node: node, context: context)
         } else if let function = declaration.as(InitializerDeclSyntax.self) {
-            if context.lexicalContext.first?.is(ClassDeclSyntax.self) == true,
-               !function.modifiers.contains(where: { $0.name == .keyword(.convenience) }) {
-                try self.expansion(
-                    function: function
-                        .with(\.initKeyword.leadingTrivia, [])
-                        .with(\.modifiers, function.modifiers + [
-                            DeclModifierSyntax(name: .keyword(.convenience).with(\.trailingTrivia, .spaces(1)))
-                        ]),
-                    node: node,
-                    context: context
-                )
-            } else {
-                try self.expansion(function: function, node: node, context: context)
-            }
+            try self.expansion(function: function, node: node, context: context)
         } else {
             throw Error.notAFunctionOrInitializer
         }
@@ -69,13 +95,92 @@ public struct FileReferenceMacro: PeerMacro {
             throw Error.noFileReferenceArgument
         }
 
+        let isClass = context.lexicalContext.first?.is(ClassDeclSyntax.self) == true
+
         guard function.signature.effectSpecifiers?.throwsClause?.throwsSpecifier.tokenKind ~= .keyword(.throws) else {
             throw Error.functionNotThrowing
         }
 
-        return generators.map {
-            self.makeFunc(from: function, argIndex: argIndex, contextType: contextType, generator: $0)
+        if let syncFunction = self.syncVersion(of: function) {
+            return try [
+                DeclSyntax(syncFunction.with(\.attributes, []))
+            ] + self.expansion(function: syncFunction, node: node, context: context)
         }
+
+        return generators.map {
+            self.makeFunc(from: function, generator: $0, argIndex: argIndex, contextType: contextType, isClass: isClass)
+        }
+    }
+
+    private static func syncVersion<F: FuncOrInit>(of function: F) -> F? {
+        guard function.signature.effectSpecifiers?.asyncSpecifier?.tokenKind ~= .keyword(SwiftSyntax.Keyword.async),
+              let syncBody = self.syncBody(for: function) else {
+            return nil
+        }
+
+        var syncFunc = function.with(\.body, syncBody)
+
+        syncFunc.keyword.leadingTrivia = .spaces(2)
+        syncFunc.signature.effectSpecifiers?.asyncSpecifier = nil
+
+        for index in syncFunc.signature.parameterClause.parameters.indices {
+            self.replaceType(
+                "FileReference",
+                in: &syncFunc.signature.parameterClause.parameters[index].type,
+                with: "SyncFileReference"
+            )
+        }
+
+        if var returnClause = syncFunc.signature.returnClause {
+            self.replaceType("FileReference", in: &returnClause.type, with: "SyncFileReference")
+            syncFunc.signature.returnClause = returnClause
+        }
+
+        if var genericParameterClause = syncFunc.genericParameterClause {
+            for index in genericParameterClause.parameters.indices {
+                if var type = genericParameterClause.parameters[index].inheritedType {
+                    self.replaceType("FileReference", in: &type, with: "SyncFileReference")
+                    genericParameterClause.parameters[index].inheritedType = type
+                }
+            }
+            syncFunc.genericParameterClause = genericParameterClause
+        }
+
+        if var genericWhereClause = syncFunc.genericWhereClause {
+            for index in genericWhereClause.requirements.indices {
+                switch genericWhereClause.requirements[index].requirement {
+                case .sameTypeRequirement(var requirement):
+                    switch requirement.rightType {
+                    case .type(var type):
+                        self.replaceType("FileReference", in: &type, with: "SyncFileReference")
+                        requirement.rightType = .type(type)
+                    case .expr:
+                        break
+                    }
+                    genericWhereClause.requirements[index].requirement = .sameTypeRequirement(requirement)
+                case .conformanceRequirement(var requirement):
+                    self.replaceType("FileReference", in: &requirement.rightType, with: "SyncFileReference")
+                    genericWhereClause.requirements[index].requirement = .conformanceRequirement(requirement)
+                case .layoutRequirement:
+                    break
+                }
+            }
+
+            syncFunc.genericWhereClause = genericWhereClause
+        }
+
+        return syncFunc
+    }
+
+    private static func syncBody(for function: some FuncOrInit) -> CodeBlockSyntax? {
+        guard let body = function.body else { return nil }
+
+        let rewriter = AsyncToSync()
+        let syncBody = rewriter.visit(body)
+
+        if rewriter.cannotConvert { return nil }
+
+        return WhitespaceStripper().visit(syncBody)
     }
 
     private static func fileRefIndex(
@@ -138,10 +243,25 @@ public struct FileReferenceMacro: PeerMacro {
 
     private static func makeFunc(
         from funcOrInit: some FuncOrInit,
+        generator: Generator,
         argIndex: FunctionParameterListSyntax.Index,
         contextType: String?,
-        generator: Generator
+        isClass: Bool
     ) -> DeclSyntax {
+        if isClass,
+           var initDecl = funcOrInit.as(InitializerDeclSyntax.self),
+           !initDecl.modifiers.contains(where: { $0.name.tokenKind == .keyword(.convenience) }) {
+            initDecl.modifiers.insert(DeclModifierSyntax(name: .keyword(.convenience)), at: initDecl.modifiers.startIndex)
+            initDecl.initKeyword.leadingTrivia = []
+            return self.makeFunc(
+                from: initDecl,
+                generator: generator,
+                argIndex: argIndex,
+                contextType: contextType,
+                isClass: isClass
+            )
+        }
+
         let sig = funcOrInit.signature
         let isAsync = sig.effectSpecifiers?.asyncSpecifier?.tokenKind ~= .keyword(SwiftSyntax.Keyword.async)
 
@@ -246,6 +366,9 @@ public struct FileReferenceMacro: PeerMacro {
                 id.genericArgumentClause = genericClause
             }
 
+            type = TypeSyntax(id)
+        } else if var id = type.as(SomeOrAnyTypeSyntax.self) {
+            self.replaceType(oldType, in: &id.constraint, with: newType)
             type = TypeSyntax(id)
         } else if var function = type.as(FunctionTypeSyntax.self) {
             for eachIndex in function.parameters.indices {
