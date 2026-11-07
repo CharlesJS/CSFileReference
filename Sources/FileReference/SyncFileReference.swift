@@ -23,10 +23,13 @@ public extension SyncFileReference {
         SyncFileReferenceSlice(parent: self, range: range, isClosed: false)
     }
 
+    func syncGetData(at offset: some BinaryInteger, length: some BinaryInteger) async throws -> SyncBytes {
+        try self.syncGetData(in: UInt64(offset)..<(UInt64(offset) + UInt64(length)))
+    }
+
     func syncGetData(in range: Range<UInt64>) throws -> SyncBytes {
         try SyncBytes(capacity: range.count) {
             try self.syncGetBytes($0, in: range)
         }
     }
 }
-

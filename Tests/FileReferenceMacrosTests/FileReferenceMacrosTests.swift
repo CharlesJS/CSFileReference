@@ -30,22 +30,26 @@ struct MacroTests {
                 func foo(ref: some FileReference) async throws -> String {
                     return "Foo"
                 }
-
-                func foo(path: FilePath) async throws -> String {
-                    try await foo(ref: SystemFileReference(path: path))
+                
+                func foo(ref: some SyncFileReference) throws -> String {
+                    return "Foo"
                 }
 
-                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws -> String {
-                    try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                func foo(path: FilePath) throws -> String {
+                    try foo(ref: SystemFileReference(path: path))
+                }
+
+                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws -> String {
+                    try foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
                 }
                 
-                func foo(data: some Collection<UInt8>) async throws -> String {
-                    try await foo(ref: RawDataFileReference(data: data))
+                func foo(data: some Collection<UInt8>) throws -> String {
+                    try foo(ref: RawDataFileReference(data: data))
                 }
                 """,
                 foundationSource: """
-                func foo(url: URL) async throws -> String {
-                    try await foo(ref: SystemFileReference(url: url))
+                func foo(url: URL) throws -> String {
+                    try foo(ref: SystemFileReference(url: url))
                 }
                 """
             )
@@ -64,22 +68,26 @@ struct MacroTests {
                 func foo(ref: any FileReference) async throws -> String {
                     return "Foo"
                 }
-
-                func foo(at path: FilePath) async throws -> String {
-                    try await foo(ref: SystemFileReference(path: path))
+                
+                func foo(ref: any SyncFileReference) throws -> String {
+                    return "Foo"
                 }
 
-                func foo(from fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws -> String {
-                    try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                func foo(at path: FilePath) throws -> String {
+                    try foo(ref: SystemFileReference(path: path))
                 }
 
-                func foo(data: some Collection<UInt8>) async throws -> String {
-                    try await foo(ref: RawDataFileReference(data: data))
+                func foo(from fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws -> String {
+                    try foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                }
+
+                func foo(data: some Collection<UInt8>) throws -> String {
+                    try foo(ref: RawDataFileReference(data: data))
                 }
                 """,
                 foundationSource: """
-                func foo(at url: URL) async throws -> String {
-                    try await foo(ref: SystemFileReference(url: url))
+                func foo(at url: URL) throws -> String {
+                    try foo(ref: SystemFileReference(url: url))
                 }
                 """
             )
@@ -99,21 +107,25 @@ struct MacroTests {
                     return "Foo"
                 }
 
-                func foo(path: FilePath) async throws -> String {
-                    try await foo(ref: SystemFileReference(path: path))
+                func foo<R: SyncFileReference>(ref: R) throws -> String {
+                    return "Foo"
                 }
 
-                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws -> String {
-                    try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                func foo(path: FilePath) throws -> String {
+                    try foo(ref: SystemFileReference(path: path))
                 }
 
-                func foo(data: some Collection<UInt8>) async throws -> String {
-                    try await foo(ref: RawDataFileReference(data: data))
+                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws -> String {
+                    try foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                }
+
+                func foo(data: some Collection<UInt8>) throws -> String {
+                    try foo(ref: RawDataFileReference(data: data))
                 }
                 """,
                 foundationSource: """
-                func foo(url: URL) async throws -> String {
-                    try await foo(ref: SystemFileReference(url: url))
+                func foo(url: URL) throws -> String {
+                    try foo(ref: SystemFileReference(url: url))
                 }
                 """
             )
@@ -133,21 +145,25 @@ struct MacroTests {
                     return "Foo"
                 }
 
-                func foo(path: FilePath, array: Array<SystemFileReference>) async throws -> String {
-                    try await foo(ref: SystemFileReference(path: path), array: array)
+                func foo<R: SyncFileReference>(ref: R, array: Array<R>) throws -> String {
+                    return "Foo"
                 }
 
-                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: Array<SystemFileReference>) async throws -> String {
-                    try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                func foo(path: FilePath, array: Array<SystemFileReference>) throws -> String {
+                    try foo(ref: SystemFileReference(path: path), array: array)
                 }
 
-                func foo(data: some Collection<UInt8>, array: Array<RawDataFileReference>) async throws -> String {
-                    try await foo(ref: RawDataFileReference(data: data), array: array)
+                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: Array<SystemFileReference>) throws -> String {
+                    try foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                }
+
+                func foo(data: some Collection<UInt8>, array: Array<RawDataFileReference>) throws -> String {
+                    try foo(ref: RawDataFileReference(data: data), array: array)
                 }
                 """,
                 foundationSource: """
-                func foo(url: URL, array: Array<SystemFileReference>) async throws -> String {
-                    try await foo(ref: SystemFileReference(url: url), array: array)
+                func foo(url: URL, array: Array<SystemFileReference>) throws -> String {
+                    try foo(ref: SystemFileReference(url: url), array: array)
                 }
                 """
             )
@@ -167,21 +183,25 @@ struct MacroTests {
                     return "Foo"
                 }
 
-                func foo(path: FilePath, array: [SystemFileReference]) async throws -> String {
-                    try await foo(ref: SystemFileReference(path: path), array: array)
+                func foo<R: SyncFileReference>(ref: R, array: [R]) throws -> String {
+                    return "Foo"
                 }
 
-                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: [SystemFileReference]) async throws -> String {
-                    try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                func foo(path: FilePath, array: [SystemFileReference]) throws -> String {
+                    try foo(ref: SystemFileReference(path: path), array: array)
                 }
 
-                func foo(data: some Collection<UInt8>, array: [RawDataFileReference]) async throws -> String {
-                    try await foo(ref: RawDataFileReference(data: data), array: array)
+                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: [SystemFileReference]) throws -> String {
+                    try foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                }
+
+                func foo(data: some Collection<UInt8>, array: [RawDataFileReference]) throws -> String {
+                    try foo(ref: RawDataFileReference(data: data), array: array)
                 }
                 """,
                 foundationSource: """
-                func foo(url: URL, array: [SystemFileReference]) async throws -> String {
-                    try await foo(ref: SystemFileReference(url: url), array: array)
+                func foo(url: URL, array: [SystemFileReference]) throws -> String {
+                    try foo(ref: SystemFileReference(url: url), array: array)
                 }
                 """
             )
@@ -201,21 +221,25 @@ struct MacroTests {
                     return "Foo"
                 }
 
-                func foo(path: FilePath, dict: [String : SystemFileReference]) async throws -> String {
-                    try await foo(ref: SystemFileReference(path: path), dict: dict)
+                func foo<R: SyncFileReference>(ref: R, dict: [String : R]) throws -> String {
+                    return "Foo"
                 }
 
-                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool, dict: [String : SystemFileReference]) async throws -> String {
-                    try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), dict: dict)
+                func foo(path: FilePath, dict: [String : SystemFileReference]) throws -> String {
+                    try foo(ref: SystemFileReference(path: path), dict: dict)
                 }
 
-                func foo(data: some Collection<UInt8>, dict: [String : RawDataFileReference]) async throws -> String {
-                    try await foo(ref: RawDataFileReference(data: data), dict: dict)
+                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool, dict: [String : SystemFileReference]) throws -> String {
+                    try foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), dict: dict)
+                }
+
+                func foo(data: some Collection<UInt8>, dict: [String : RawDataFileReference]) throws -> String {
+                    try foo(ref: RawDataFileReference(data: data), dict: dict)
                 }
                 """,
                 foundationSource: """
-                func foo(url: URL, dict: [String : SystemFileReference]) async throws -> String {
-                    try await foo(ref: SystemFileReference(url: url), dict: dict)
+                func foo(url: URL, dict: [String : SystemFileReference]) throws -> String {
+                    try foo(ref: SystemFileReference(url: url), dict: dict)
                 }
                 """
             )
@@ -235,21 +259,25 @@ struct MacroTests {
                     return "Foo"
                 }
 
-                func foo(path: FilePath, closure: (SystemFileReference) -> Void) async throws -> String {
-                    try await foo(ref: SystemFileReference(path: path), closure: closure)
+                func foo<R: SyncFileReference>(ref: R, closure: (R) -> Void) throws -> String {
+                    return "Foo"
                 }
 
-                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool, closure: (SystemFileReference) -> Void) async throws -> String {
-                    try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), closure: closure)
+                func foo(path: FilePath, closure: (SystemFileReference) -> Void) throws -> String {
+                    try foo(ref: SystemFileReference(path: path), closure: closure)
                 }
 
-                func foo(data: some Collection<UInt8>, closure: (RawDataFileReference) -> Void) async throws -> String {
-                    try await foo(ref: RawDataFileReference(data: data), closure: closure)
+                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool, closure: (SystemFileReference) -> Void) throws -> String {
+                    try foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), closure: closure)
+                }
+
+                func foo(data: some Collection<UInt8>, closure: (RawDataFileReference) -> Void) throws -> String {
+                    try foo(ref: RawDataFileReference(data: data), closure: closure)
                 }
                 """,
                 foundationSource: """
-                func foo(url: URL, closure: (SystemFileReference) -> Void) async throws -> String {
-                    try await foo(ref: SystemFileReference(url: url), closure: closure)
+                func foo(url: URL, closure: (SystemFileReference) -> Void) throws -> String {
+                    try foo(ref: SystemFileReference(url: url), closure: closure)
                 }
                 """
             )
@@ -269,21 +297,25 @@ struct MacroTests {
                     return "Foo"
                 }
 
-                func foo<S: StringProtocol>(type: S.Type, path: FilePath) async throws -> S {
-                    try await foo(type: type, ref: SystemFileReference(path: path))
+                func foo<S: StringProtocol, R: SyncFileReference>(type: S.Type, ref: R) throws -> S {
+                    return "Foo"
                 }
 
-                func foo<S: StringProtocol>(type: S.Type, fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws -> S {
-                    try await foo(type: type, ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                func foo<S: StringProtocol>(type: S.Type, path: FilePath) throws -> S {
+                    try foo(type: type, ref: SystemFileReference(path: path))
                 }
 
-                func foo<S: StringProtocol>(type: S.Type, data: some Collection<UInt8>) async throws -> S {
-                    try await foo(type: type, ref: RawDataFileReference(data: data))
+                func foo<S: StringProtocol>(type: S.Type, fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws -> S {
+                    try foo(type: type, ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                }
+
+                func foo<S: StringProtocol>(type: S.Type, data: some Collection<UInt8>) throws -> S {
+                    try foo(type: type, ref: RawDataFileReference(data: data))
                 }
                 """,
                 foundationSource: """
-                func foo<S: StringProtocol>(type: S.Type, url: URL) async throws -> S {
-                    try await foo(type: type, ref: SystemFileReference(url: url))
+                func foo<S: StringProtocol>(type: S.Type, url: URL) throws -> S {
+                    try foo(type: type, ref: SystemFileReference(url: url))
                 }
                 """
             )
@@ -300,21 +332,25 @@ struct MacroTests {
                     return "Foo"
                 }
 
-                func foo<S: StringProtocol>(path: FilePath, type: S.Type) async throws -> S {
-                    try await foo(ref: SystemFileReference(path: path), type: type)
+                func foo<R: SyncFileReference, S: StringProtocol>(ref: R, type: S.Type) throws -> S {
+                    return "Foo"
                 }
 
-                func foo<S: StringProtocol>(fileDescriptor: FileDescriptor, closeWhenDone: Bool, type: S.Type) async throws -> S {
-                    try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), type: type)
+                func foo<S: StringProtocol>(path: FilePath, type: S.Type) throws -> S {
+                    try foo(ref: SystemFileReference(path: path), type: type)
                 }
 
-                func foo<S: StringProtocol>(data: some Collection<UInt8>, type: S.Type) async throws -> S {
-                    try await foo(ref: RawDataFileReference(data: data), type: type)
+                func foo<S: StringProtocol>(fileDescriptor: FileDescriptor, closeWhenDone: Bool, type: S.Type) throws -> S {
+                    try foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), type: type)
+                }
+
+                func foo<S: StringProtocol>(data: some Collection<UInt8>, type: S.Type) throws -> S {
+                    try foo(ref: RawDataFileReference(data: data), type: type)
                 }
                 """,
                 foundationSource: """
-                func foo<S: StringProtocol>(url: URL, type: S.Type) async throws -> S {
-                    try await foo(ref: SystemFileReference(url: url), type: type)
+                func foo<S: StringProtocol>(url: URL, type: S.Type) throws -> S {
+                    try foo(ref: SystemFileReference(url: url), type: type)
                 }
                 """
             )
@@ -334,21 +370,25 @@ struct MacroTests {
                     return ref
                 }
 
-                func foo(path: FilePath) async throws -> SystemFileReference {
-                    try await foo(ref: SystemFileReference(path: path))
+                func foo<R: SyncFileReference>(ref: R) throws -> R {
+                    return ref
                 }
 
-                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws -> SystemFileReference {
-                    try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                func foo(path: FilePath) throws -> SystemFileReference {
+                    try foo(ref: SystemFileReference(path: path))
                 }
 
-                func foo(data: some Collection<UInt8>) async throws -> RawDataFileReference {
-                    try await foo(ref: RawDataFileReference(data: data))
+                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws -> SystemFileReference {
+                    try foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                }
+
+                func foo(data: some Collection<UInt8>) throws -> RawDataFileReference {
+                    try foo(ref: RawDataFileReference(data: data))
                 }
                 """,
                 foundationSource: """
-                func foo(url: URL) async throws -> SystemFileReference {
-                    try await foo(ref: SystemFileReference(url: url))
+                func foo(url: URL) throws -> SystemFileReference {
+                    try foo(ref: SystemFileReference(url: url))
                 }
                 """
             )
@@ -716,22 +756,26 @@ struct MacroTests {
                             print("initialize something")
                         }
 
-                        init(path: FilePath) async throws {
-                            try await self.init(ref: SystemFileReference(path: path))
+                        init(ref: some SyncFileReference) throws {
+                            print("initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        init(path: FilePath) throws {
+                            try self.init(ref: SystemFileReference(path: path))
                         }
 
-                        init(data: some Collection<UInt8>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data))
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        init(data: some Collection<UInt8>) throws {
+                            try self.init(ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL) async throws {
-                            try await self.init(ref: SystemFileReference(url: url))
+                        init(url: URL) throws {
+                            try self.init(ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -754,22 +798,26 @@ struct MacroTests {
                             print("initialize something")
                         }
 
-                        init(path: FilePath) async throws {
-                            try await self.init(ref: SystemFileReference(path: path))
+                        init(ref: any SyncFileReference) throws {
+                            print("initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        init(path: FilePath) throws {
+                            try self.init(ref: SystemFileReference(path: path))
                         }
 
-                        init(data: some Collection<UInt8>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data))
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        init(data: some Collection<UInt8>) throws {
+                            try self.init(ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL) async throws {
-                            try await self.init(ref: SystemFileReference(url: url))
+                        init(url: URL) throws {
+                            try self.init(ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -792,22 +840,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init(path: FilePath) async throws {
-                            try await self.init(ref: SystemFileReference(path: path))
+                        init<R: SyncFileReference>(ref: R) throws {
+                            print("Initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        init(path: FilePath) throws {
+                            try self.init(ref: SystemFileReference(path: path))
                         }
 
-                        init(data: some Collection<UInt8>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data))
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        init(data: some Collection<UInt8>) throws {
+                            try self.init(ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL) async throws {
-                            try await self.init(ref: SystemFileReference(url: url))
+                        init(url: URL) throws {
+                            try self.init(ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -833,22 +885,26 @@ struct MacroTests {
                             self.file = file
                         }
 
-                        init(path: FilePath) async throws where F == SystemFileReference {
-                            try await self.init(file: SystemFileReference(path: path))
+                        init(file: F) throws {
+                            self.file = file
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws where F == SystemFileReference {
-                            try await self.init(file: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        init(path: FilePath) throws where F == SystemFileReference {
+                            try self.init(file: SystemFileReference(path: path))
                         }
 
-                        init(data: some Collection<UInt8>) async throws where F == RawDataFileReference {
-                            try await self.init(file: RawDataFileReference(data: data))
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws where F == SystemFileReference {
+                            try self.init(file: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        init(data: some Collection<UInt8>) throws where F == RawDataFileReference {
+                            try self.init(file: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL) async throws where F == SystemFileReference {
-                            try await self.init(file: SystemFileReference(url: url))
+                        init(url: URL) throws where F == SystemFileReference {
+                            try self.init(file: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -871,22 +927,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init(path: FilePath, array: Array<SystemFileReference>) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), array: array)
+                        init<R: SyncFileReference>(ref: R, array: Array<R>) throws {
+                            print("Initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: Array<SystemFileReference>) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                        init(path: FilePath, array: Array<SystemFileReference>) throws {
+                            try self.init(ref: SystemFileReference(path: path), array: array)
+                        }
+
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: Array<SystemFileReference>) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
                         }
                     
-                        init(data: some Collection<UInt8>, array: Array<RawDataFileReference>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), array: array)
+                        init(data: some Collection<UInt8>, array: Array<RawDataFileReference>) throws {
+                            try self.init(ref: RawDataFileReference(data: data), array: array)
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL, array: Array<SystemFileReference>) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), array: array)
+                        init(url: URL, array: Array<SystemFileReference>) throws {
+                            try self.init(ref: SystemFileReference(url: url), array: array)
                         }
                     """
                 )
@@ -909,22 +969,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init(path: FilePath, array: [SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), array: array)
+                        init<R: SyncFileReference>(ref: R, array: [R]) throws {
+                            print("Initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: [SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                        init(path: FilePath, array: [SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(path: path), array: array)
                         }
 
-                        init(data: some Collection<UInt8>, array: [RawDataFileReference]) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), array: array)
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: [SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                        }
+
+                        init(data: some Collection<UInt8>, array: [RawDataFileReference]) throws {
+                            try self.init(ref: RawDataFileReference(data: data), array: array)
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL, array: [SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), array: array)
+                        init(url: URL, array: [SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(url: url), array: array)
                         }
                     """
                 )
@@ -947,22 +1011,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init(path: FilePath, dict: [String : SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), dict: dict)
+                        init<R: SyncFileReference>(ref: R, dict: [String : R]) throws {
+                            print("Initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, dict: [String : SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), dict: dict)
+                        init(path: FilePath, dict: [String : SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(path: path), dict: dict)
                         }
 
-                        init(data: some Collection<UInt8>, dict: [String : RawDataFileReference]) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), dict: dict)
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, dict: [String : SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), dict: dict)
+                        }
+
+                        init(data: some Collection<UInt8>, dict: [String : RawDataFileReference]) throws {
+                            try self.init(ref: RawDataFileReference(data: data), dict: dict)
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL, dict: [String : SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), dict: dict)
+                        init(url: URL, dict: [String : SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(url: url), dict: dict)
                         }
                     """
                 )
@@ -985,22 +1053,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init(path: FilePath, closure: (SystemFileReference) -> Void) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), closure: closure)
+                        init<R: SyncFileReference>(ref: R, closure: (R) -> Void) throws {
+                            print("Initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, closure: (SystemFileReference) -> Void) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), closure: closure)
+                        init(path: FilePath, closure: (SystemFileReference) -> Void) throws {
+                            try self.init(ref: SystemFileReference(path: path), closure: closure)
                         }
 
-                        init(data: some Collection<UInt8>, closure: (RawDataFileReference) -> Void) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), closure: closure)
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, closure: (SystemFileReference) -> Void) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), closure: closure)
+                        }
+
+                        init(data: some Collection<UInt8>, closure: (RawDataFileReference) -> Void) throws {
+                            try self.init(ref: RawDataFileReference(data: data), closure: closure)
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL, closure: (SystemFileReference) -> Void) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), closure: closure)
+                        init(url: URL, closure: (SystemFileReference) -> Void) throws {
+                            try self.init(ref: SystemFileReference(url: url), closure: closure)
                         }
                     """
                 )
@@ -1023,22 +1095,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init<S: StringProtocol>(type: S.Type, path: FilePath) async throws {
-                            try await self.init(type: type, ref: SystemFileReference(path: path))
+                        init<S: StringProtocol, R: SyncFileReference>(type: S.Type, ref: R) throws {
+                            print("Initialize something")
                         }
 
-                        init<S: StringProtocol>(type: S.Type, fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(type: type, ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        init<S: StringProtocol>(type: S.Type, path: FilePath) throws {
+                            try self.init(type: type, ref: SystemFileReference(path: path))
                         }
 
-                        init<S: StringProtocol>(type: S.Type, data: some Collection<UInt8>) async throws {
-                            try await self.init(type: type, ref: RawDataFileReference(data: data))
+                        init<S: StringProtocol>(type: S.Type, fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(type: type, ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        init<S: StringProtocol>(type: S.Type, data: some Collection<UInt8>) throws {
+                            try self.init(type: type, ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        init<S: StringProtocol>(type: S.Type, url: URL) async throws {
-                            try await self.init(type: type, ref: SystemFileReference(url: url))
+                        init<S: StringProtocol>(type: S.Type, url: URL) throws {
+                            try self.init(type: type, ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -1058,22 +1134,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init<S: StringProtocol>(path: FilePath, type: S.Type) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), type: type)
+                        init<R: SyncFileReference, S: StringProtocol>(ref: R, type: S.Type) throws {
+                            print("Initialize something")
                         }
 
-                        init<S: StringProtocol>(fileDescriptor: FileDescriptor, closeWhenDone: Bool, type: S.Type) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), type: type)
+                        init<S: StringProtocol>(path: FilePath, type: S.Type) throws {
+                            try self.init(ref: SystemFileReference(path: path), type: type)
                         }
 
-                        init<S: StringProtocol>(data: some Collection<UInt8>, type: S.Type) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), type: type)
+                        init<S: StringProtocol>(fileDescriptor: FileDescriptor, closeWhenDone: Bool, type: S.Type) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), type: type)
+                        }
+
+                        init<S: StringProtocol>(data: some Collection<UInt8>, type: S.Type) throws {
+                            try self.init(ref: RawDataFileReference(data: data), type: type)
                         }
                     }
                     """,
                     foundationSource: """
-                        init<S: StringProtocol>(url: URL, type: S.Type) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), type: type)
+                        init<S: StringProtocol>(url: URL, type: S.Type) throws {
+                            try self.init(ref: SystemFileReference(url: url), type: type)
                         }
                     """
                 )
@@ -1485,22 +1565,26 @@ struct MacroTests {
                             print("initialize something")
                         }
 
-                        convenience init(path: FilePath) async throws {
-                            try await self.init(ref: SystemFileReference(path: path))
+                        init(ref: some SyncFileReference) throws {
+                            print("initialize something")
                         }
 
-                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        convenience init(path: FilePath) throws {
+                            try self.init(ref: SystemFileReference(path: path))
                         }
 
-                        convenience init(data: some Collection<UInt8>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data))
+                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        convenience init(data: some Collection<UInt8>) throws {
+                            try self.init(ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        convenience init(url: URL) async throws {
-                            try await self.init(ref: SystemFileReference(url: url))
+                        convenience init(url: URL) throws {
+                            try self.init(ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -1523,22 +1607,26 @@ struct MacroTests {
                             print("initialize something")
                         }
 
-                        convenience init(path: FilePath) async throws {
-                            try await self.init(ref: SystemFileReference(path: path))
+                        init(ref: any SyncFileReference) throws {
+                            print("initialize something")
                         }
 
-                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        convenience init(path: FilePath) throws {
+                            try self.init(ref: SystemFileReference(path: path))
                         }
 
-                        convenience init(data: some Collection<UInt8>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data))
+                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        convenience init(data: some Collection<UInt8>) throws {
+                            try self.init(ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        convenience init(url: URL) async throws {
-                            try await self.init(ref: SystemFileReference(url: url))
+                        convenience init(url: URL) throws {
+                            try self.init(ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -1561,22 +1649,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        convenience init(path: FilePath) async throws {
-                            try await self.init(ref: SystemFileReference(path: path))
+                        init<R: SyncFileReference>(ref: R) throws {
+                            print("Initialize something")
                         }
 
-                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        convenience init(path: FilePath) throws {
+                            try self.init(ref: SystemFileReference(path: path))
                         }
 
-                        convenience init(data: some Collection<UInt8>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data))
+                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        convenience init(data: some Collection<UInt8>) throws {
+                            try self.init(ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        convenience init(url: URL) async throws {
-                            try await self.init(ref: SystemFileReference(url: url))
+                        convenience init(url: URL) throws {
+                            try self.init(ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -1602,22 +1694,26 @@ struct MacroTests {
                             self.file = file
                         }
 
-                        convenience init(path: FilePath) async throws where F == SystemFileReference {
-                            try await self.init(file: SystemFileReference(path: path))
+                        init(file: F) throws {
+                            self.file = file
                         }
 
-                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws where F == SystemFileReference {
-                            try await self.init(file: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        convenience init(path: FilePath) throws where F == SystemFileReference {
+                            try self.init(file: SystemFileReference(path: path))
                         }
 
-                        convenience init(data: some Collection<UInt8>) async throws where F == RawDataFileReference {
-                            try await self.init(file: RawDataFileReference(data: data))
+                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws where F == SystemFileReference {
+                            try self.init(file: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        convenience init(data: some Collection<UInt8>) throws where F == RawDataFileReference {
+                            try self.init(file: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        convenience init(url: URL) async throws where F == SystemFileReference {
-                            try await self.init(file: SystemFileReference(url: url))
+                        convenience init(url: URL) throws where F == SystemFileReference {
+                            try self.init(file: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -1640,22 +1736,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        convenience init(path: FilePath, array: Array<SystemFileReference>) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), array: array)
+                        init<R: SyncFileReference>(ref: R, array: Array<R>) throws {
+                            print("Initialize something")
                         }
 
-                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: Array<SystemFileReference>) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                        convenience init(path: FilePath, array: Array<SystemFileReference>) throws {
+                            try self.init(ref: SystemFileReference(path: path), array: array)
                         }
 
-                        convenience init(data: some Collection<UInt8>, array: Array<RawDataFileReference>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), array: array)
+                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: Array<SystemFileReference>) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                        }
+
+                        convenience init(data: some Collection<UInt8>, array: Array<RawDataFileReference>) throws {
+                            try self.init(ref: RawDataFileReference(data: data), array: array)
                         }
                     }
                     """,
                     foundationSource: """
-                        convenience init(url: URL, array: Array<SystemFileReference>) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), array: array)
+                        convenience init(url: URL, array: Array<SystemFileReference>) throws {
+                            try self.init(ref: SystemFileReference(url: url), array: array)
                         }
                     """
                 )
@@ -1678,22 +1778,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        convenience init(path: FilePath, array: [SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), array: array)
+                        init<R: SyncFileReference>(ref: R, array: [R]) throws {
+                            print("Initialize something")
                         }
 
-                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: [SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                        convenience init(path: FilePath, array: [SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(path: path), array: array)
                         }
 
-                        convenience init(data: some Collection<UInt8>, array: [RawDataFileReference]) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), array: array)
+                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: [SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                        }
+
+                        convenience init(data: some Collection<UInt8>, array: [RawDataFileReference]) throws {
+                            try self.init(ref: RawDataFileReference(data: data), array: array)
                         }
                     }
                     """,
                     foundationSource: """
-                        convenience init(url: URL, array: [SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), array: array)
+                        convenience init(url: URL, array: [SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(url: url), array: array)
                         }
                     """
                 )
@@ -1716,22 +1820,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        convenience init(path: FilePath, dict: [String : SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), dict: dict)
+                        init<R: SyncFileReference>(ref: R, dict: [String : R]) throws {
+                            print("Initialize something")
                         }
 
-                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, dict: [String : SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), dict: dict)
+                        convenience init(path: FilePath, dict: [String : SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(path: path), dict: dict)
                         }
 
-                        convenience init(data: some Collection<UInt8>, dict: [String : RawDataFileReference]) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), dict: dict)
+                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, dict: [String : SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), dict: dict)
+                        }
+
+                        convenience init(data: some Collection<UInt8>, dict: [String : RawDataFileReference]) throws {
+                            try self.init(ref: RawDataFileReference(data: data), dict: dict)
                         }
                     }
                     """,
                     foundationSource: """
-                        convenience init(url: URL, dict: [String : SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), dict: dict)
+                        convenience init(url: URL, dict: [String : SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(url: url), dict: dict)
                         }
                     """
                 )
@@ -1754,22 +1862,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        convenience init(path: FilePath, closure: (SystemFileReference) -> Void) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), closure: closure)
+                        init<R: SyncFileReference>(ref: R, closure: (R) -> Void) throws {
+                            print("Initialize something")
                         }
 
-                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, closure: (SystemFileReference) -> Void) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), closure: closure)
+                        convenience init(path: FilePath, closure: (SystemFileReference) -> Void) throws {
+                            try self.init(ref: SystemFileReference(path: path), closure: closure)
                         }
 
-                        convenience init(data: some Collection<UInt8>, closure: (RawDataFileReference) -> Void) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), closure: closure)
+                        convenience init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, closure: (SystemFileReference) -> Void) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), closure: closure)
+                        }
+
+                        convenience init(data: some Collection<UInt8>, closure: (RawDataFileReference) -> Void) throws {
+                            try self.init(ref: RawDataFileReference(data: data), closure: closure)
                         }
                     }
                     """,
                     foundationSource: """
-                        convenience init(url: URL, closure: (SystemFileReference) -> Void) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), closure: closure)
+                        convenience init(url: URL, closure: (SystemFileReference) -> Void) throws {
+                            try self.init(ref: SystemFileReference(url: url), closure: closure)
                         }
                     """
                 )
@@ -1792,22 +1904,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        convenience init<S: StringProtocol>(type: S.Type, path: FilePath) async throws {
-                            try await self.init(type: type, ref: SystemFileReference(path: path))
+                        init<S: StringProtocol, R: SyncFileReference>(type: S.Type, ref: R) throws {
+                            print("Initialize something")
                         }
 
-                        convenience init<S: StringProtocol>(type: S.Type, fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(type: type, ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        convenience init<S: StringProtocol>(type: S.Type, path: FilePath) throws {
+                            try self.init(type: type, ref: SystemFileReference(path: path))
                         }
 
-                        convenience init<S: StringProtocol>(type: S.Type, data: some Collection<UInt8>) async throws {
-                            try await self.init(type: type, ref: RawDataFileReference(data: data))
+                        convenience init<S: StringProtocol>(type: S.Type, fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(type: type, ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        convenience init<S: StringProtocol>(type: S.Type, data: some Collection<UInt8>) throws {
+                            try self.init(type: type, ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        convenience init<S: StringProtocol>(type: S.Type, url: URL) async throws {
-                            try await self.init(type: type, ref: SystemFileReference(url: url))
+                        convenience init<S: StringProtocol>(type: S.Type, url: URL) throws {
+                            try self.init(type: type, ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -1827,22 +1943,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        convenience init<S: StringProtocol>(path: FilePath, type: S.Type) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), type: type)
+                        init<R: SyncFileReference, S: StringProtocol>(ref: R, type: S.Type) throws {
+                            print("Initialize something")
                         }
 
-                        convenience init<S: StringProtocol>(fileDescriptor: FileDescriptor, closeWhenDone: Bool, type: S.Type) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), type: type)
+                        convenience init<S: StringProtocol>(path: FilePath, type: S.Type) throws {
+                            try self.init(ref: SystemFileReference(path: path), type: type)
                         }
 
-                        convenience init<S: StringProtocol>(data: some Collection<UInt8>, type: S.Type) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), type: type)
+                        convenience init<S: StringProtocol>(fileDescriptor: FileDescriptor, closeWhenDone: Bool, type: S.Type) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), type: type)
+                        }
+
+                        convenience init<S: StringProtocol>(data: some Collection<UInt8>, type: S.Type) throws {
+                            try self.init(ref: RawDataFileReference(data: data), type: type)
                         }
                     }
                     """,
                     foundationSource: """
-                        convenience init<S: StringProtocol>(url: URL, type: S.Type) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), type: type)
+                        convenience init<S: StringProtocol>(url: URL, type: S.Type) throws {
+                            try self.init(ref: SystemFileReference(url: url), type: type)
                         }
                     """
                 )
@@ -2254,22 +2374,26 @@ struct MacroTests {
                             print("initialize something")
                         }
 
-                        init(path: FilePath) async throws {
-                            try await self.init(ref: SystemFileReference(path: path))
+                        init(ref: some SyncFileReference) throws {
+                            print("initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        init(path: FilePath) throws {
+                            try self.init(ref: SystemFileReference(path: path))
+                        }
+
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
                         }
                     
-                        init(data: some Collection<UInt8>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data))
+                        init(data: some Collection<UInt8>) throws {
+                            try self.init(ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL) async throws {
-                            try await self.init(ref: SystemFileReference(url: url))
+                        init(url: URL) throws {
+                            try self.init(ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -2292,22 +2416,26 @@ struct MacroTests {
                             print("initialize something")
                         }
 
-                        init(path: FilePath) async throws {
-                            try await self.init(ref: SystemFileReference(path: path))
+                        init(ref: any SyncFileReference) throws {
+                            print("initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        init(path: FilePath) throws {
+                            try self.init(ref: SystemFileReference(path: path))
                         }
 
-                        init(data: some Collection<UInt8>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data))
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        init(data: some Collection<UInt8>) throws {
+                            try self.init(ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL) async throws {
-                            try await self.init(ref: SystemFileReference(url: url))
+                        init(url: URL) throws {
+                            try self.init(ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -2330,22 +2458,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init(path: FilePath) async throws {
-                            try await self.init(ref: SystemFileReference(path: path))
+                        init<R: SyncFileReference>(ref: R) throws {
+                            print("Initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        init(path: FilePath) throws {
+                            try self.init(ref: SystemFileReference(path: path))
                         }
 
-                        init(data: some Collection<UInt8>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data))
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        init(data: some Collection<UInt8>) throws {
+                            try self.init(ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL) async throws {
-                            try await self.init(ref: SystemFileReference(url: url))
+                        init(url: URL) throws {
+                            try self.init(ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -2371,22 +2503,26 @@ struct MacroTests {
                             self.file = file
                         }
 
-                        init(path: FilePath) async throws where F == SystemFileReference {
-                            try await self.init(file: SystemFileReference(path: path))
+                        init(file: F) throws {
+                            self.file = file
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws where F == SystemFileReference {
-                            try await self.init(file: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        init(path: FilePath) throws where F == SystemFileReference {
+                            try self.init(file: SystemFileReference(path: path))
                         }
 
-                        init(data: some Collection<UInt8>) async throws where F == RawDataFileReference {
-                            try await self.init(file: RawDataFileReference(data: data))
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws where F == SystemFileReference {
+                            try self.init(file: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        init(data: some Collection<UInt8>) throws where F == RawDataFileReference {
+                            try self.init(file: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL) async throws where F == SystemFileReference {
-                            try await self.init(file: SystemFileReference(url: url))
+                        init(url: URL) throws where F == SystemFileReference {
+                            try self.init(file: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -2409,22 +2545,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init(path: FilePath, array: Array<SystemFileReference>) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), array: array)
+                        init<R: SyncFileReference>(ref: R, array: Array<R>) throws {
+                            print("Initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: Array<SystemFileReference>) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                        init(path: FilePath, array: Array<SystemFileReference>) throws {
+                            try self.init(ref: SystemFileReference(path: path), array: array)
                         }
 
-                        init(data: some Collection<UInt8>, array: Array<RawDataFileReference>) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), array: array)
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: Array<SystemFileReference>) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                        }
+
+                        init(data: some Collection<UInt8>, array: Array<RawDataFileReference>) throws {
+                            try self.init(ref: RawDataFileReference(data: data), array: array)
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL, array: Array<SystemFileReference>) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), array: array)
+                        init(url: URL, array: Array<SystemFileReference>) throws {
+                            try self.init(ref: SystemFileReference(url: url), array: array)
                         }
                     """
                 )
@@ -2447,22 +2587,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init(path: FilePath, array: [SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), array: array)
+                        init<R: SyncFileReference>(ref: R, array: [R]) throws {
+                            print("Initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: [SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                        init(path: FilePath, array: [SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(path: path), array: array)
                         }
 
-                        init(data: some Collection<UInt8>, array: [RawDataFileReference]) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), array: array)
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, array: [SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), array: array)
+                        }
+
+                        init(data: some Collection<UInt8>, array: [RawDataFileReference]) throws {
+                            try self.init(ref: RawDataFileReference(data: data), array: array)
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL, array: [SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), array: array)
+                        init(url: URL, array: [SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(url: url), array: array)
                         }
                     """
                 )
@@ -2485,22 +2629,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init(path: FilePath, dict: [String : SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), dict: dict)
+                        init<R: SyncFileReference>(ref: R, dict: [String : R]) throws {
+                            print("Initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, dict: [String : SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), dict: dict)
+                        init(path: FilePath, dict: [String : SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(path: path), dict: dict)
                         }
 
-                        init(data: some Collection<UInt8>, dict: [String : RawDataFileReference]) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), dict: dict)
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, dict: [String : SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), dict: dict)
+                        }
+
+                        init(data: some Collection<UInt8>, dict: [String : RawDataFileReference]) throws {
+                            try self.init(ref: RawDataFileReference(data: data), dict: dict)
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL, dict: [String : SystemFileReference]) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), dict: dict)
+                        init(url: URL, dict: [String : SystemFileReference]) throws {
+                            try self.init(ref: SystemFileReference(url: url), dict: dict)
                         }
                     """
                 )
@@ -2523,22 +2671,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init(path: FilePath, closure: (SystemFileReference) -> Void) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), closure: closure)
+                        init<R: SyncFileReference>(ref: R, closure: (R) -> Void) throws {
+                            print("Initialize something")
                         }
 
-                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, closure: (SystemFileReference) -> Void) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), closure: closure)
+                        init(path: FilePath, closure: (SystemFileReference) -> Void) throws {
+                            try self.init(ref: SystemFileReference(path: path), closure: closure)
                         }
 
-                        init(data: some Collection<UInt8>, closure: (RawDataFileReference) -> Void) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), closure: closure)
+                        init(fileDescriptor: FileDescriptor, closeWhenDone: Bool, closure: (SystemFileReference) -> Void) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), closure: closure)
+                        }
+
+                        init(data: some Collection<UInt8>, closure: (RawDataFileReference) -> Void) throws {
+                            try self.init(ref: RawDataFileReference(data: data), closure: closure)
                         }
                     }
                     """,
                     foundationSource: """
-                        init(url: URL, closure: (SystemFileReference) -> Void) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), closure: closure)
+                        init(url: URL, closure: (SystemFileReference) -> Void) throws {
+                            try self.init(ref: SystemFileReference(url: url), closure: closure)
                         }
                     """
                 )
@@ -2561,22 +2713,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init<S: StringProtocol>(type: S.Type, path: FilePath) async throws {
-                            try await self.init(type: type, ref: SystemFileReference(path: path))
+                        init<S: StringProtocol, R: SyncFileReference>(type: S.Type, ref: R) throws {
+                            print("Initialize something")
                         }
 
-                        init<S: StringProtocol>(type: S.Type, fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws {
-                            try await self.init(type: type, ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        init<S: StringProtocol>(type: S.Type, path: FilePath) throws {
+                            try self.init(type: type, ref: SystemFileReference(path: path))
                         }
 
-                        init<S: StringProtocol>(type: S.Type, data: some Collection<UInt8>) async throws {
-                            try await self.init(type: type, ref: RawDataFileReference(data: data))
+                        init<S: StringProtocol>(type: S.Type, fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws {
+                            try self.init(type: type, ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+                        }
+
+                        init<S: StringProtocol>(type: S.Type, data: some Collection<UInt8>) throws {
+                            try self.init(type: type, ref: RawDataFileReference(data: data))
                         }
                     }
                     """,
                     foundationSource: """
-                        init<S: StringProtocol>(type: S.Type, url: URL) async throws {
-                            try await self.init(type: type, ref: SystemFileReference(url: url))
+                        init<S: StringProtocol>(type: S.Type, url: URL) throws {
+                            try self.init(type: type, ref: SystemFileReference(url: url))
                         }
                     """
                 )
@@ -2596,22 +2752,26 @@ struct MacroTests {
                             print("Initialize something")
                         }
 
-                        init<S: StringProtocol>(path: FilePath, type: S.Type) async throws {
-                            try await self.init(ref: SystemFileReference(path: path), type: type)
+                        init<R: SyncFileReference, S: StringProtocol>(ref: R, type: S.Type) throws {
+                            print("Initialize something")
                         }
 
-                        init<S: StringProtocol>(fileDescriptor: FileDescriptor, closeWhenDone: Bool, type: S.Type) async throws {
-                            try await self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), type: type)
+                        init<S: StringProtocol>(path: FilePath, type: S.Type) throws {
+                            try self.init(ref: SystemFileReference(path: path), type: type)
                         }
 
-                        init<S: StringProtocol>(data: some Collection<UInt8>, type: S.Type) async throws {
-                            try await self.init(ref: RawDataFileReference(data: data), type: type)
+                        init<S: StringProtocol>(fileDescriptor: FileDescriptor, closeWhenDone: Bool, type: S.Type) throws {
+                            try self.init(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone), type: type)
+                        }
+
+                        init<S: StringProtocol>(data: some Collection<UInt8>, type: S.Type) throws {
+                            try self.init(ref: RawDataFileReference(data: data), type: type)
                         }
                     }
                     """,
                     foundationSource: """
-                        init<S: StringProtocol>(url: URL, type: S.Type) async throws {
-                            try await self.init(ref: SystemFileReference(url: url), type: type)
+                        init<S: StringProtocol>(url: URL, type: S.Type) throws {
+                            try self.init(ref: SystemFileReference(url: url), type: type)
                         }
                     """
                 )
@@ -3016,17 +3176,130 @@ struct MacroTests {
                 return "Foo"
             }
 
-            func foo(path: FilePath) async throws -> String {
-                try await foo(ref: SystemFileReference(path: path))
+            func foo(ref: some SyncFileReference) throws -> String {
+                return "Foo"
             }
 
-            func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws -> String {
-                try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+            func foo(path: FilePath) throws -> String {
+                try foo(ref: SystemFileReference(path: path))
+            }
+
+            func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws -> String {
+                try foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
             }
             """,
             foundationSource: """
-            func foo(url: URL) async throws -> String {
-                try await foo(ref: SystemFileReference(url: url))
+            func foo(url: URL) throws -> String {
+                try foo(ref: SystemFileReference(url: url))
+            }
+            """
+        )
+    }
+
+    @Test("converts async function body to sync")
+    func convertAsyncBodyToSync() async throws {
+        MacroTests.expectExpansion(
+            """
+            @FileReference(.filePath("path"))
+            func doSomething(file: some FileReference) async throws -> some Collection<UInt8> {
+                try await file.getData(in: 0..<10)
+            }
+            """,
+            expandedSource: """
+            func doSomething(file: some FileReference) async throws -> some Collection<UInt8> {
+                try await file.getData(in: 0..<10)
+            }
+
+            func doSomething(file: some SyncFileReference) throws -> some Collection<UInt8> {
+                try file.syncGetData(in: 0 ..< 10)
+            }
+
+            func doSomething(path: FilePath) throws -> some Collection<UInt8> {
+                try doSomething(file: SystemFileReference(path: path))
+            }
+            """
+        )
+
+        MacroTests.expectExpansion(
+            """
+            @FileReference(.filePath("path"))
+            func doSomething(file: some FileReference) async throws -> some Collection<UInt8> {
+                try await file.getData(at: 10, length: 100)
+            }
+            """,
+            expandedSource: """
+            func doSomething(file: some FileReference) async throws -> some Collection<UInt8> {
+                try await file.getData(at: 10, length: 100)
+            }
+            
+            func doSomething(file: some SyncFileReference) throws -> some Collection<UInt8> {
+                try file.syncGetData(at: 10, length: 100)
+            }
+            
+            func doSomething(path: FilePath) throws -> some Collection<UInt8> {
+                try doSomething(file: SystemFileReference(path: path))
+            }
+            """
+        )
+
+        MacroTests.expectExpansion(
+            """
+            @FileReference(.filePath("path"))
+            func doSomething(file: some FileReference) async throws -> some Collection<UInt8> {
+                let buf = UnsafeMutableRawBufferPointer.allocate(byteCount: 1000, alignment: 1)
+                defer { buf.deallocate() }
+            
+                let count = try await file.getBytes(buf, in: 0..<100)
+            
+                return buf.prefix(count).withMemoryRebound(to: UInt8.self) { Array($0) }
+            }
+            """,
+            expandedSource: """
+            func doSomething(file: some FileReference) async throws -> some Collection<UInt8> {
+                let buf = UnsafeMutableRawBufferPointer.allocate(byteCount: 1000, alignment: 1)
+                defer { buf.deallocate() }
+
+                let count = try await file.getBytes(buf, in: 0..<100)
+
+                return buf.prefix(count).withMemoryRebound(to: UInt8.self) { Array($0) }
+            }
+
+            func doSomething(file: some SyncFileReference) throws -> some Collection<UInt8> {
+                let buf = UnsafeMutableRawBufferPointer.allocate(byteCount: 1000, alignment: 1)
+                defer {
+                    buf.deallocate()
+                }
+                let count = try file.syncGetBytes(buf, in: 0 ..< 100)
+                return buf.prefix(count).withMemoryRebound(to: UInt8.self) {
+                    Array($0)
+                }
+            }
+
+            func doSomething(path: FilePath) throws -> some Collection<UInt8> {
+                try doSomething(file: SystemFileReference(path: path))
+            }
+            """
+        )
+    }
+
+    @Test("async body cannot be converted to sync")
+    func asyncBodyCannotBeConvertedToSync() async throws {
+        MacroTests.expectExpansion(
+            """
+            @FileReference(.filePath("path"))
+            func foo(ref: some FileReference) async throws -> String {
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                return "Foo"
+            }
+            """,
+            expandedSource: """
+            func foo(ref: some FileReference) async throws -> String {
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                return "Foo"
+            }
+
+            func foo(path: FilePath) async throws -> String {
+                try await foo(ref: SystemFileReference(path: path))
             }
             """
         )
@@ -3046,8 +3319,12 @@ struct MacroTests {
                 return "Foo"
             }
 
-            func foo(at path: FilePath) async throws -> String {
-                try await foo(ref: SystemFileReference(path: path))
+            func foo(ref: some SyncFileReference) throws -> String {
+                return "Foo"
+            }
+
+            func foo(at path: FilePath) throws -> String {
+                try foo(ref: SystemFileReference(path: path))
             }
             """,
             foundationSource: ""
@@ -3068,8 +3345,12 @@ struct MacroTests {
                 return "Foo"
             }
 
-            func foo(file fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws -> String {
-                try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
+            func foo(ref: some SyncFileReference) throws -> String {
+                return "Foo"
+            }
+
+            func foo(file fileDescriptor: FileDescriptor, closeWhenDone: Bool) throws -> String {
+                try foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
             }
             """,
             foundationSource: ""
@@ -3090,8 +3371,12 @@ struct MacroTests {
                 return "Foo"
             }
 
-            func foo(with data: some Collection<UInt8>) async throws -> String {
-                try await foo(ref: RawDataFileReference(data: data))
+            func foo(ref: some SyncFileReference) throws -> String {
+                return "Foo"
+            }
+
+            func foo(with data: some Collection<UInt8>) throws -> String {
+                try foo(ref: RawDataFileReference(data: data))
             }
             """,
             foundationSource: ""
@@ -3113,8 +3398,12 @@ struct MacroTests {
                 return "Foo"
             }
 
-            func foo(at url: URL) async throws -> String {
-                try await foo(ref: SystemFileReference(url: url))
+            func foo(ref: some SyncFileReference) throws -> String {
+                return "Foo"
+            }
+
+            func foo(at url: URL) throws -> String {
+                try foo(ref: SystemFileReference(url: url))
             }
             """,
             foundationSource: ""
@@ -3176,17 +3465,21 @@ struct MacroTests {
     private static func expectExpansion(
         _ originalSource: String,
         expandedSource: String,
-        foundationSource: String,
+        foundationSource: String? = nil,
         fileID: StaticString = #fileID,
         file: StaticString = #filePath,
         line: UInt = #line,
         column: UInt = #column
     ) {
 #if Foundation
-        let fullSource = if try! /^class|struct|actor/.firstMatch(in: expandedSource) != nil {
-            "\(expandedSource.dropLast())\n\(foundationSource)\n}"
+        let fullSource = if let foundationSource {
+            if try! /^class|struct|actor/.firstMatch(in: expandedSource) != nil {
+                "\(expandedSource.dropLast())\n\(foundationSource)\n}"
+            } else {
+                "\(expandedSource)\n\n\(foundationSource)"
+            }
         } else {
-            "\(expandedSource)\n\n\(foundationSource)"
+            expandedSource
         }
 #else
         let fullSource = expandedSource
