@@ -21,7 +21,7 @@ struct MacroTests {
         func expandsAsyncFunctionWithSome() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo(ref: some FileReference) async throws -> String {
                     return "Foo"
                 }
@@ -55,7 +55,7 @@ struct MacroTests {
         func expandsAsyncFunctionWithAny() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("at"), .fileDescriptor("from"), .rawData("data"), .url("at")])
                 func foo(ref: any FileReference) async throws -> String {
                     return "Foo"
                 }
@@ -65,11 +65,11 @@ struct MacroTests {
                     return "Foo"
                 }
 
-                func foo(path: FilePath) async throws -> String {
+                func foo(at path: FilePath) async throws -> String {
                     try await foo(ref: SystemFileReference(path: path))
                 }
 
-                func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws -> String {
+                func foo(from fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws -> String {
                     try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
                 }
 
@@ -78,7 +78,7 @@ struct MacroTests {
                 }
                 """,
                 foundationSource: """
-                func foo(url: URL) async throws -> String {
+                func foo(at url: URL) async throws -> String {
                     try await foo(ref: SystemFileReference(url: url))
                 }
                 """
@@ -89,7 +89,7 @@ struct MacroTests {
         func expandsAsyncFunctionWithGenericParameter() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: FileReference>(ref: R) async throws -> String {
                     return "Foo"
                 }
@@ -123,7 +123,7 @@ struct MacroTests {
         func expandsAsyncFunctionWithGenericParameterReferencedInOtherGenericParameter() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: FileReference>(ref: R, array: Array<R>) async throws -> String {
                     return "Foo"
                 }
@@ -157,7 +157,7 @@ struct MacroTests {
         func expandsAsyncFunctionWithGenericParameterReferencedInArrayParameter() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: FileReference>(ref: R, array: [R]) async throws -> String {
                     return "Foo"
                 }
@@ -191,7 +191,7 @@ struct MacroTests {
         func expandsAsyncFunctionWithGenericParameterReferencedInDictionary() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: FileReference>(ref: R, dict: [String : R]) async throws -> String {
                     return "Foo"
                 }
@@ -225,7 +225,7 @@ struct MacroTests {
         func expandsAsyncFunctionWithGenericParameterReferencedInClosure() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: FileReference>(ref: R, closure: (R) -> Void) async throws -> String {
                     return "Foo"
                 }
@@ -259,7 +259,7 @@ struct MacroTests {
         func expandsAsyncFunctionWithMultipleGenericParameters() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<S: StringProtocol, R: FileReference>(type: S.Type, ref: R) async throws -> S {
                     return "Foo"
                 }
@@ -290,7 +290,7 @@ struct MacroTests {
 
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: FileReference, S: StringProtocol>(ref: R, type: S.Type) async throws -> S {
                     return "Foo"
                 }
@@ -324,7 +324,7 @@ struct MacroTests {
         func expandsAsyncFunctionReturningGenericParameter() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: FileReference>(ref: R) async throws -> R {
                     return ref
                 }
@@ -361,7 +361,7 @@ struct MacroTests {
         func expandsSyncFunctionWithSome() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo(reference: some SyncFileReference) throws -> String {
                     return "Foo"
                 }
@@ -395,7 +395,7 @@ struct MacroTests {
         func expandsSyncFunctionWithAny() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo(reference: any SyncFileReference) throws -> String {
                     return "Foo"
                 }
@@ -429,7 +429,7 @@ struct MacroTests {
         func expandsSyncFunctionWithGenericParameter() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: SyncFileReference>(ref: R) throws -> String {
                     return "Foo"
                 }
@@ -463,7 +463,7 @@ struct MacroTests {
         func expandsSyncFunctionWithGenericParameterReferencedInOtherGenericParameter() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: SyncFileReference>(ref: R, array: Array<R>) throws -> String {
                     return "Foo"
                 }
@@ -497,7 +497,7 @@ struct MacroTests {
         func expandsSyncFunctionWithGenericParameterReferencedInArrayParameter() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: SyncFileReference>(ref: R, array: [R]) throws -> String {
                     return "Foo"
                 }
@@ -531,7 +531,7 @@ struct MacroTests {
         func expandsSyncFunctionWithGenericParameterReferencedInDictionary() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: SyncFileReference>(ref: R, dict: [String : R]) throws -> String {
                     return "Foo"
                 }
@@ -565,7 +565,7 @@ struct MacroTests {
         func expandsSyncFunctionWithGenericParameterReferencedInClosure() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: SyncFileReference>(ref: R, closure: (R) -> Void) throws -> String {
                     return "Foo"
                 }
@@ -599,7 +599,7 @@ struct MacroTests {
         func expandsSyncFunctionWithMultipleGenericParameters() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<S: StringProtocol, R: SyncFileReference>(type: S.Type, ref: R) throws -> S {
                     return "Foo"
                 }
@@ -630,7 +630,7 @@ struct MacroTests {
 
                 MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: SyncFileReference, S: StringProtocol>(ref: R, type: S.Type) throws -> S {
                     return "Foo"
                 }
@@ -664,7 +664,7 @@ struct MacroTests {
         func expandsSyncFunctionReturningGenericParameter() {
             MacroTests.expectExpansion(
                 """
-                @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                 func foo<R: SyncFileReference>(ref: R) throws -> R {
                     return ref
                 }
@@ -704,7 +704,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     struct ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(ref: some FileReference) async throws {
                             print("initialize something")
                         }
@@ -742,7 +742,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     struct ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(ref: any FileReference) async throws {
                             print("initialize something")
                         }
@@ -780,7 +780,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     struct ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R) async throws {
                             print("Initialize something")
                         }
@@ -820,7 +820,7 @@ struct MacroTests {
                     struct ParentType<F: FileReference> {
                         let file: F
 
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(file: F) async throws {
                             self.file = file
                         }
@@ -859,7 +859,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     struct ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, array: Array<R>) async throws {
                             print("Initialize something")
                         }
@@ -897,7 +897,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     struct ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, array: [R]) async throws {
                             print("Initialize something")
                         }
@@ -935,7 +935,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     struct ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, dict: [String : R]) async throws {
                             print("Initialize something")
                         }
@@ -973,7 +973,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     struct ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, closure: (R) -> Void) async throws {
                             print("Initialize something")
                         }
@@ -1011,7 +1011,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     struct ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<S: StringProtocol, R: FileReference>(type: S.Type, ref: R) async throws {
                             print("Initialize something")
                         }
@@ -1046,7 +1046,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     struct ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference, S: StringProtocol>(ref: R, type: S.Type) async throws {
                             print("Initialize something")
                         }
@@ -1087,7 +1087,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     struct ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(ref: some SyncFileReference) throws {
                             print("initialize something")
                         }
@@ -1125,7 +1125,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 struct ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init(ref: any SyncFileReference) throws {
                         print("initialize something")
                     }
@@ -1163,7 +1163,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 struct ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R) throws {
                         print("Initialize something")
                     }
@@ -1203,7 +1203,7 @@ struct MacroTests {
                     struct ParentType<F: FileReference> {
                         let file: F
 
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(file: F) throws {
                             self.file = file
                         }
@@ -1242,7 +1242,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 struct ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, array: Array<R>) throws {
                         print("Initialize something")
                     }
@@ -1280,7 +1280,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 struct ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, array: [R]) throws {
                         print("Initialize something")
                     }
@@ -1318,7 +1318,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 struct ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, dict: [String : R]) throws {
                         print("Initialize something")
                     }
@@ -1356,7 +1356,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 struct ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, closure: (R) -> Void) throws {
                         print("Initialize something")
                     }
@@ -1394,7 +1394,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 struct ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<S: StringProtocol, R: FileReference>(type: S.Type, ref: R) throws {
                         print("Initialize something")
                     }
@@ -1429,7 +1429,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 struct ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference, S: StringProtocol>(ref: R, type: S.Type) throws {
                         print("Initialize something")
                     }
@@ -1473,7 +1473,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     class ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(ref: some FileReference) async throws {
                             print("initialize something")
                         }
@@ -1511,7 +1511,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     class ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(ref: any FileReference) async throws {
                             print("initialize something")
                         }
@@ -1549,7 +1549,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     class ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R) async throws {
                             print("Initialize something")
                         }
@@ -1589,7 +1589,7 @@ struct MacroTests {
                     class ParentType<F: FileReference> {
                         let file: F
 
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(file: F) async throws {
                             self.file = file
                         }
@@ -1628,7 +1628,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     class ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, array: Array<R>) async throws {
                             print("Initialize something")
                         }
@@ -1666,7 +1666,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     class ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, array: [R]) async throws {
                             print("Initialize something")
                         }
@@ -1704,7 +1704,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     class ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, dict: [String : R]) async throws {
                             print("Initialize something")
                         }
@@ -1742,7 +1742,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     class ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, closure: (R) -> Void) async throws {
                             print("Initialize something")
                         }
@@ -1780,7 +1780,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     class ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<S: StringProtocol, R: FileReference>(type: S.Type, ref: R) async throws {
                             print("Initialize something")
                         }
@@ -1815,7 +1815,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     class ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference, S: StringProtocol>(ref: R, type: S.Type) async throws {
                             print("Initialize something")
                         }
@@ -1856,7 +1856,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     class ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(ref: some SyncFileReference) throws {
                             print("initialize something")
                         }
@@ -1894,7 +1894,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 class ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init(ref: any SyncFileReference) throws {
                         print("initialize something")
                     }
@@ -1932,7 +1932,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 class ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R) throws {
                         print("Initialize something")
                     }
@@ -1972,7 +1972,7 @@ struct MacroTests {
                     class ParentType<F: FileReference> {
                         let file: F
 
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(file: F) throws {
                             self.file = file
                         }
@@ -2011,7 +2011,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 class ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, array: Array<R>) throws {
                         print("Initialize something")
                     }
@@ -2049,7 +2049,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 class ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, array: [R]) throws {
                         print("Initialize something")
                     }
@@ -2087,7 +2087,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 class ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, dict: [String : R]) throws {
                         print("Initialize something")
                     }
@@ -2125,7 +2125,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 class ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, closure: (R) -> Void) throws {
                         print("Initialize something")
                     }
@@ -2163,7 +2163,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 class ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<S: StringProtocol, R: FileReference>(type: S.Type, ref: R) throws {
                         print("Initialize something")
                     }
@@ -2198,7 +2198,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 class ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference, S: StringProtocol>(ref: R, type: S.Type) throws {
                         print("Initialize something")
                     }
@@ -2242,7 +2242,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     actor ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(ref: some FileReference) async throws {
                             print("initialize something")
                         }
@@ -2280,7 +2280,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     actor ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(ref: any FileReference) async throws {
                             print("initialize something")
                         }
@@ -2318,7 +2318,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     actor ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R) async throws {
                             print("Initialize something")
                         }
@@ -2358,7 +2358,7 @@ struct MacroTests {
                     actor ParentType<F: FileReference> {
                         let file: F
 
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(file: F) async throws {
                             self.file = file
                         }
@@ -2397,7 +2397,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     actor ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, array: Array<R>) async throws {
                             print("Initialize something")
                         }
@@ -2435,7 +2435,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     actor ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, array: [R]) async throws {
                             print("Initialize something")
                         }
@@ -2473,7 +2473,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     actor ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, dict: [String : R]) async throws {
                             print("Initialize something")
                         }
@@ -2511,7 +2511,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     actor ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference>(ref: R, closure: (R) -> Void) async throws {
                             print("Initialize something")
                         }
@@ -2549,7 +2549,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     actor ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<S: StringProtocol, R: FileReference>(type: S.Type, ref: R) async throws {
                             print("Initialize something")
                         }
@@ -2584,7 +2584,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     actor ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init<R: FileReference, S: StringProtocol>(ref: R, type: S.Type) async throws {
                             print("Initialize something")
                         }
@@ -2625,7 +2625,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                     """
                     actor ParentType {
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(ref: some SyncFileReference) throws {
                             print("initialize something")
                         }
@@ -2663,7 +2663,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 actor ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init(ref: any SyncFileReference) throws {
                         print("initialize something")
                     }
@@ -2701,7 +2701,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 actor ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R) throws {
                         print("Initialize something")
                     }
@@ -2741,7 +2741,7 @@ struct MacroTests {
                     actor ParentType<F: FileReference> {
                         let file: F
 
-                        @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                        @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                         init(file: F) throws {
                             self.file = file
                         }
@@ -2780,7 +2780,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 actor ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, array: Array<R>) throws {
                         print("Initialize something")
                     }
@@ -2818,7 +2818,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 actor ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, array: [R]) throws {
                         print("Initialize something")
                     }
@@ -2856,7 +2856,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 actor ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, dict: [String : R]) throws {
                         print("Initialize something")
                     }
@@ -2894,7 +2894,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 actor ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference>(ref: R, closure: (R) -> Void) throws {
                         print("Initialize something")
                     }
@@ -2932,7 +2932,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 actor ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<S: StringProtocol, R: FileReference>(type: S.Type, ref: R) throws {
                         print("Initialize something")
                     }
@@ -2967,7 +2967,7 @@ struct MacroTests {
                 MacroTests.expectExpansion(
                 """
                 actor ParentType {
-                    @FileReference([.filePath, .fileDescriptor, .rawData, .url])
+                    @FileReference([.filePath("path"), .fileDescriptor("fileDescriptor"), .rawData("data"), .url("url")])
                     init<R: FileReference, S: StringProtocol>(ref: R, type: S.Type) throws {
                         print("Initialize something")
                     }
@@ -3036,7 +3036,7 @@ struct MacroTests {
     func filePathGenerator() {
         MacroTests.expectExpansion(
             """
-            @FileReference(.filePath)
+            @FileReference(.filePath("at"))
             func foo(ref: some FileReference) async throws -> String {
                 return "Foo"
             }
@@ -3046,7 +3046,7 @@ struct MacroTests {
                 return "Foo"
             }
 
-            func foo(path: FilePath) async throws -> String {
+            func foo(at path: FilePath) async throws -> String {
                 try await foo(ref: SystemFileReference(path: path))
             }
             """,
@@ -3058,7 +3058,7 @@ struct MacroTests {
     func fileDescriptorGenerator() {
         MacroTests.expectExpansion(
             """
-            @FileReference(.fileDescriptor)
+            @FileReference(.fileDescriptor("file"))
             func foo(ref: some FileReference) async throws -> String {
                 return "Foo"
             }
@@ -3068,7 +3068,7 @@ struct MacroTests {
                 return "Foo"
             }
 
-            func foo(fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws -> String {
+            func foo(file fileDescriptor: FileDescriptor, closeWhenDone: Bool) async throws -> String {
                 try await foo(ref: SystemFileReference(fileDescriptor: fileDescriptor, closeWhenDone: closeWhenDone))
             }
             """,
@@ -3080,7 +3080,7 @@ struct MacroTests {
     func rawDataGenerator() {
         MacroTests.expectExpansion(
             """
-            @FileReference(.rawData)
+            @FileReference(.rawData("with"))
             func foo(ref: some FileReference) async throws -> String {
                 return "Foo"
             }
@@ -3090,7 +3090,7 @@ struct MacroTests {
                 return "Foo"
             }
 
-            func foo(data: some Collection<UInt8>) async throws -> String {
+            func foo(with data: some Collection<UInt8>) async throws -> String {
                 try await foo(ref: RawDataFileReference(data: data))
             }
             """,
@@ -3103,7 +3103,7 @@ struct MacroTests {
     func urlGenerator() {
         MacroTests.expectExpansion(
             """
-            @FileReference(.url)
+            @FileReference(.url("at"))
             func foo(ref: some FileReference) async throws -> String {
                 return "Foo"
             }
@@ -3113,7 +3113,7 @@ struct MacroTests {
                 return "Foo"
             }
 
-            func foo(url: URL) async throws -> String {
+            func foo(at url: URL) async throws -> String {
                 try await foo(ref: SystemFileReference(url: url))
             }
             """,
