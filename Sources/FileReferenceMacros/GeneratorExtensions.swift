@@ -11,18 +11,9 @@ import SwiftSyntax
 
 extension Generator {
     static func parse(node: SwiftSyntax.AttributeSyntax) -> [Generator]? {
-        guard let expr = node.arguments?.as(LabeledExprListSyntax.self)?.first?.expression else { return nil}
-
-        let functionCalls: [FunctionCallExprSyntax]? = if let array = expr.as(ArrayExprSyntax.self) {
-            array.elements.compactMap { $0.expression.as(FunctionCallExprSyntax.self) }
-        } else if let decl = expr.as(FunctionCallExprSyntax.self) {
-            [decl]
-        } else {
-            nil
-        }
-
-        return functionCalls?.compactMap { functionCall -> Generator? in
-            guard let memberAccess = functionCall.calledExpression.as(MemberAccessExprSyntax.self),
+        node.arguments?.as(LabeledExprListSyntax.self)?.compactMap {
+            guard let functionCall = $0.expression.as(FunctionCallExprSyntax.self),
+                  let memberAccess = functionCall.calledExpression.as(MemberAccessExprSyntax.self),
                   case .identifier(let name) = memberAccess.declName.baseName.tokenKind else {
                 return nil
             }
