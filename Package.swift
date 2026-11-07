@@ -30,7 +30,6 @@ let package = Package(
         .package(
             url: "https://github.com/CharlesJS/CSErrors", 
             from: "2.1.1",
-            traits: [.trait(name: "Foundation", condition: .when(traits: ["Foundation"]))]
         ),
         .package(url: "https://github.com/CharlesJS/SyncPolyfill", from: "0.2.1"),
         .package(url: "https://github.com/swiftlang/swift-syntax", "604.0.0"..<"900.0.0"),

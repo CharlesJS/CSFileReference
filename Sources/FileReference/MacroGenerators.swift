@@ -8,11 +8,11 @@
 #if Macros
 
 public enum Generator: Sendable {
-    case filePath
-    case fileDescriptor
-    case rawData
+    case filePath(String?)
+    case fileDescriptor(String?)
+    case rawData(String?)
 #if Foundation
-    case url
+    case url(String?)
 #endif
 }
 

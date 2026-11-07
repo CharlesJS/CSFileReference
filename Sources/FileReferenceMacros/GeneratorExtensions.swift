@@ -13,33 +13,47 @@ extension Generator {
     static func parse(node: SwiftSyntax.AttributeSyntax) -> [Generator]? {
         guard let expr = node.arguments?.as(LabeledExprListSyntax.self)?.first?.expression else { return nil}
 
-        let memberAccess: [MemberAccessExprSyntax]? = if let array = expr.as(ArrayExprSyntax.self) {
-            array.elements.compactMap { $0.expression.as(MemberAccessExprSyntax.self) }
-        } else if let decl = expr.as(MemberAccessExprSyntax.self) {
+        let functionCalls: [FunctionCallExprSyntax]? = if let array = expr.as(ArrayExprSyntax.self) {
+            array.elements.compactMap { $0.expression.as(FunctionCallExprSyntax.self) }
+        } else if let decl = expr.as(FunctionCallExprSyntax.self) {
             [decl]
         } else {
             nil
         }
 
-        return memberAccess?.compactMap {
-            switch $0.declName.baseName.tokenKind {
-            case .identifier(let name):
-                return Self(name: name)
-            default:
+        return functionCalls?.compactMap { functionCall -> Generator? in
+            guard let memberAccess = functionCall.calledExpression.as(MemberAccessExprSyntax.self),
+                  case .identifier(let name) = memberAccess.declName.baseName.tokenKind else {
                 return nil
             }
+
+            let arg = functionCall.arguments.first?.expression.as(StringLiteralExprSyntax.self)
+            let label = arg?.segments.first?.as(StringSegmentSyntax.self)?.content.text
+
+            return Self(name: name, label: label)
         }
     }
 
-    init?(name: String) {
+    init?(name: String, label: String?) {
         switch name {
-        case "filePath": self = .filePath
-        case "fileDescriptor": self = .fileDescriptor
-        case "rawData": self = .rawData
+        case "filePath": self = .filePath(label)
+        case "fileDescriptor": self = .fileDescriptor(label)
+        case "rawData": self = .rawData(label)
 #if Foundation
-        case "url": self = .url
+        case "url": self = .url(label)
 #endif
         default: return nil
+        }
+    }
+
+    var label: String? {
+        switch self {
+        case .filePath(let label): label
+        case .fileDescriptor(let label): label
+        case .rawData(let label): label
+#if Foundation
+        case .url(let label): label
+#endif
         }
     }
 

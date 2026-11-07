@@ -26,9 +26,9 @@ public struct FileReferenceMacro: PeerMacro {
     }
 
 #if Foundation
-    static let defaultGenerators: [Generator] = [.filePath, .fileDescriptor, .url]
+    static let defaultGenerators: [Generator] = [.filePath(nil), .fileDescriptor(nil), .url(nil)]
 #else
-    static let defaultGenerators: [Generator] = [.filePath, .fileDescriptor]
+    static let defaultGenerators: [Generator] = [.filePath(nil), .fileDescriptor(nil)]
 #endif
 
     public static func expansion(
@@ -149,8 +149,15 @@ public struct FileReferenceMacro: PeerMacro {
         let additionalParams = generator.additionalParams
         let arg = params[argIndex]
         let newTypeIdentifier = IdentifierTypeSyntax(name: .identifier(generator.typeName))
+
+        let label = generator.label
+        let paramName = generator.parameterName
+        let firstName = TokenSyntax.identifier(label ?? paramName)
+        let secondName = (label != nil && label != paramName) ? TokenSyntax.identifier(paramName) : nil
+
         let newArg = arg
-            .with(\.firstName, TokenSyntax.identifier(generator.parameterName))
+            .with(\.firstName, firstName)
+            .with(\.secondName, secondName)
             .with(\.type, TypeSyntax(newTypeIdentifier))
         var newParams = params.with(\.[argIndex], newArg)
         for (offset, eachParam) in additionalParams.enumerated() {
@@ -169,12 +176,14 @@ public struct FileReferenceMacro: PeerMacro {
         let lastAdditionalIndex = newParams.index(argIndex, offsetBy: additionalParams.count)
 
         let callParams: [String] = zip(newParams.indices, newParams).compactMap { index, param in
-            let refParams = ([param] + additionalParams).map { "\($0.firstName): \($0.firstName)" }.joined(separator: ",")
+            let refParams = ([param] + additionalParams).map {
+                "\($0.secondName ?? $0.firstName): \($0.secondName ?? $0.firstName)"
+            }.joined(separator: ",")
 
             return if index == argIndex {
                 "\(params[index].firstName): \(fileRefTypeName)(\(refParams))"
             } else if index < argIndex || index > lastAdditionalIndex {
-                "\(param.firstName): \(param.firstName)"
+                "\(param.firstName): \(param.secondName ?? param.firstName)"
             } else {
                 nil
             }
