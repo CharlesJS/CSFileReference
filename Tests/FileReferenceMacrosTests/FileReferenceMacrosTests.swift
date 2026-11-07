@@ -3197,7 +3197,7 @@ struct MacroTests {
     }
 
     @Test("converts async function body to sync")
-    func convertAsyncBodyToSync() async throws {
+    func convertAsyncBodyToSync() {
         MacroTests.expectExpansion(
             """
             @FileReference(.filePath("path"))
@@ -3283,7 +3283,7 @@ struct MacroTests {
     }
 
     @Test("async body cannot be converted to sync")
-    func asyncBodyCannotBeConvertedToSync() async throws {
+    func asyncBodyCannotBeConvertedToSync() {
         MacroTests.expectExpansion(
             """
             @FileReference(.filePath("path"))
@@ -3300,6 +3300,34 @@ struct MacroTests {
 
             func foo(path: FilePath) async throws -> String {
                 try await foo(ref: SystemFileReference(path: path))
+            }
+            """
+        )
+    }
+
+    @Test("force sync conversion")
+    func forceAsyncToSyncConversion() {
+        MacroTests.expectExpansion(
+            """
+            @FileReference(.filePath("path"), forceSync: true)
+            func foo(ref: some FileReference) async throws -> String {
+                try await someOverloadedFunction(ref: ref)
+                return "Foo"
+            }
+            """,
+            expandedSource: """
+            func foo(ref: some FileReference) async throws -> String {
+                try await someOverloadedFunction(ref: ref)
+                return "Foo"
+            }
+            
+            func foo(ref: some SyncFileReference) throws -> String {
+                try someOverloadedFunction(ref: ref)
+                return "Foo"
+            }
+
+            func foo(path: FilePath) throws -> String {
+                try foo(ref: SystemFileReference(path: path))
             }
             """
         )
