@@ -1,5 +1,5 @@
 //
-//  Slice.swift
+//  FileReferenceSlice.swift
 //  CSFileReference
 //
 //  Created by Charles Srstka on 12/29/24.

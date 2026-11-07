@@ -5,9 +5,7 @@
 //  Created by Charles Srstka on 11/28/24.
 //
 
-import FileReference
-
-#if Foundation
+#if Networking
 
 #if canImport(FoundationEssentials) && canImport(FoundationNetworking)
 import FoundationEssentials

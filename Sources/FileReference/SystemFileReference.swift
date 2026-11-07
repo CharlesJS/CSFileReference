@@ -5,7 +5,6 @@
 //  Created by Charles Srstka on 11/28/24.
 //
 
-import FileReference
 import SyncPolyfill
 
 #if canImport(SystemPackage)
@@ -14,8 +13,16 @@ import SystemPackage
 import System
 #endif
 
+#if Foundation
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
+#endif
+
 @available(macOS 11.0, iOS 14.0, macCatalyst 14.0, tvOS 14.0, watchOS 7.0, visionOS 1.0, *)
-public final class SystemFileReference: FileReference {
+public final class SystemFileReference: SyncFileReference {
     private let mutex: Mutex<(fd: FileDescriptor, isClosed: Bool)>
     private let closeWhenDone: Bool
     public let size: UInt64
@@ -34,13 +41,32 @@ public final class SystemFileReference: FileReference {
         self.size = try UInt64(fileDescriptor.seek(offset: 0, from: .end))
     }
 
+#if Foundation
+    public convenience init(url: URL) throws {
+        guard url.isFileURL else {
+#if canImport(Darwin)
+            throw CocoaError(.fileReadUnsupportedScheme, userInfo: [NSURLErrorKey : url])
+#else
+            throw CocoaError(.fileReadUnsupportedScheme, userInfo: ["NSURL" : url])
+#endif
+        }
+
+        guard #available(macOS 13.0, iOS 16.0, macCatalyst 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *) else {
+            try self.init(path: FilePath(url.path))
+            return
+        }
+
+        try self.init(path: FilePath(url.path(percentEncoded: false)))
+    }
+#endif
+
     deinit {
         if self.closeWhenDone {
             self.mutex.withLock { try? $0.fd.close() }
         }
     }
 
-    public func getBytes(_ buffer: UnsafeMutableRawBufferPointer, in range: Range<UInt64>) async throws -> Int {
+    public func syncGetBytes(_ buffer: UnsafeMutableRawBufferPointer, in range: Range<UInt64>) throws -> Int {
         return try self.mutex.withLock {
             if $0.isClosed { throw FileReferenceError.closed }
 

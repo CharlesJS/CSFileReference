@@ -13,6 +13,18 @@ public final class SyncBytes: BidirectionalCollection, @unchecked Sendable {
 
     public var regions: CollectionOfOne<SyncBytes> { CollectionOfOne(self) }
 
+    internal init(capacity: Int, _ closure: (UnsafeMutableRawBufferPointer) throws -> Int) throws {
+        let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: capacity, alignment: 1)
+
+        do {
+            let count = try closure(buffer)
+            self.buffer = UnsafeRawBufferPointer(rebasing: buffer.prefix(count))
+        } catch {
+            buffer.deallocate()
+            throw error
+        }
+    }
+
     internal init(capacity: Int, _ closure: (UnsafeMutableRawBufferPointer) async throws -> Int) async throws {
         let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: capacity, alignment: 1)
 

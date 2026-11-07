@@ -5,7 +5,7 @@
 //  Created by Charles Srstka on 11/28/24.
 //
 
-public struct RawDataFileReference: FileReference {
+public struct RawDataFileReference: SyncFileReference {
     public let data: ContiguousArray<UInt8>
     private var isClosed: Bool = false
 
@@ -15,7 +15,7 @@ public struct RawDataFileReference: FileReference {
 
     public var size: UInt64 { UInt64(self.data.count) }
 
-    public func getBytes(_ buffer: UnsafeMutableRawBufferPointer, in range: Range<UInt64>) async throws -> Int {
+    public func syncGetBytes(_ buffer: UnsafeMutableRawBufferPointer, in range: Range<UInt64>) throws -> Int {
         if self.isClosed { throw FileReferenceError.closed }
 
         let lowerBound = max(self.data.startIndex, self.data.index(self.data.startIndex, offsetBy: Int(range.lowerBound)))

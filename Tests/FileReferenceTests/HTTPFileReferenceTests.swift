@@ -1,4 +1,4 @@
-#if Foundation
+#if Networking
 
 #if canImport(FoundationEssentials) && canImport(FoundationNetworking)
 import FoundationEssentials
@@ -8,7 +8,7 @@ import Foundation
 #endif
 import Testing
 
-@testable import HTTPFileReference
+@testable import FileReference
 
 @Suite(.serialized)
 struct HTTPFileReferenceTests {
