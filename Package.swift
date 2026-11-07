@@ -23,7 +23,6 @@ let package = Package(
         "Foundation",
         "Macros",
         .trait(name: "Networking", enabledTraits: ["Foundation"]),
-        .default(enabledTraits: ["Networking", "Macros"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-system", from: "1.6.1"),

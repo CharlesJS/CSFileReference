@@ -18,18 +18,18 @@ import Foundation
 import Testing
 
 #if Foundation
-@FileReference([.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at")])
+@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"))
 #else
-@FileReference([.filePath("at"), .fileDescriptor("file"), .rawData("data")])
+@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"))
 #endif
 func syncStandaloneFunction<F: FileReference>(file: F, closure: (F) throws -> Void) throws {
     try closure(file)
 }
 
 #if Foundation
-@FileReference([.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at")])
+@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"))
 #else
-@FileReference([.filePath("at"), .fileDescriptor("file"), .rawData("data")])
+@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"))
 #endif
 func asyncStandaloneFunction<F: FileReference>(file: F, closure: (F) throws -> Void) async throws {
     try closure(file)
@@ -39,9 +39,9 @@ class SyncFileHolder<F: FileReference> {
     let file: F
 
 #if Foundation
-    @FileReference([.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at")])
+    @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"))
 #else
-    @FileReference([.filePath("at"), .fileDescriptor("file"), .rawData("data")])
+    @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"))
 #endif
     init(file: F) throws { self.file = file }
 }
@@ -50,9 +50,9 @@ struct AsyncFileHolder<F: FileReference> {
     let file: F
 
 #if Foundation
-    @FileReference([.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at")])
+    @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"))
 #else
-    @FileReference([.filePath("at"), .fileDescriptor("file"), .rawData("data")])
+    @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"))
 #endif
     init(file: F) async throws { self.file = file }
 }
