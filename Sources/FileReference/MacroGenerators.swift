@@ -11,9 +11,7 @@ public enum Generator: Sendable {
     case filePath(String?)
     case fileDescriptor(String?)
     case rawData(String?)
-#if Foundation
     case url(String?)
-#endif
 }
 
 #endif

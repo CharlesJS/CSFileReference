@@ -17,20 +17,12 @@ import FileReference
 import Foundation
 import Testing
 
-#if Foundation
 @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"))
-#else
-@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"))
-#endif
 private func syncStandaloneFunction<F: FileReference>(file: F, closure: (F) throws -> Void) throws {
     try closure(file)
 }
 
-#if Foundation
 @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"))
-#else
-@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"))
-#endif
 private func asyncStandaloneFunction<F: FileReference>(file: F, closure: (F) throws -> Void) async throws {
     try closure(file)
 }
@@ -54,22 +46,14 @@ private func nonConvertibleAsyncFunction(file: some FileReference) async throws 
 private class SyncFileHolder<F: FileReference> {
     let file: F
 
-#if Foundation
     @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"))
-#else
-    @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"))
-#endif
     init(file: F) throws { self.file = file }
 }
 
 private struct AsyncFileHolder<F: FileReference> {
     let file: F
 
-#if Foundation
     @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"))
-#else
-    @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"))
-#endif
     init(file: F) async throws { self.file = file }
 }
 

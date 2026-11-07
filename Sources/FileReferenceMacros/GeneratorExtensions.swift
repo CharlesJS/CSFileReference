@@ -42,9 +42,7 @@ extension Generator {
         case .filePath(let label): label
         case .fileDescriptor(let label): label
         case .rawData(let label): label
-#if Foundation
         case .url(let label): label
-#endif
         }
     }
 
@@ -53,9 +51,7 @@ extension Generator {
         case .filePath: "path"
         case .fileDescriptor: "fileDescriptor"
         case .rawData: "data"
-#if Foundation
         case .url: "url"
-#endif
         }
     }
 
@@ -63,9 +59,7 @@ extension Generator {
         switch self {
         case .filePath, .fileDescriptor: "SystemFileReference"
         case .rawData: "RawDataFileReference"
-#if Foundation
         case .url: "SystemFileReference"
-#endif
         }
     }
 
@@ -74,9 +68,7 @@ extension Generator {
         case .filePath: "FilePath"
         case .fileDescriptor: "FileDescriptor"
         case .rawData: "some Collection<UInt8>"
-#if Foundation
         case .url: "URL"
-#endif
         }
     }
 
@@ -84,9 +76,7 @@ extension Generator {
         switch self {
         case .filePath, .rawData: []
         case .fileDescriptor: [self.param(type: "Bool", name: "closeWhenDone")]
-#if Foundation
         case .url: []
-#endif
         }
     }
 
