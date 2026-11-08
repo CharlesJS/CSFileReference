@@ -40,7 +40,13 @@ private final class WhitespaceStripper: SyntaxRewriter {
 
 private final class AsyncToSync: SyntaxRewriter {
     private static let mapping = ["getData" : "syncGetData", "getBytes": "syncGetBytes"]
+    private let forceSync: Bool
     private(set) var cannotConvert = false
+
+    init(forceSync: Bool) {
+        self.forceSync = forceSync
+        super.init()
+    }
 
     override func visit(_ awaitSyntax: AwaitExprSyntax) -> ExprSyntax {
         if let function = awaitSyntax.expression.as(FunctionCallExprSyntax.self) {
@@ -48,6 +54,8 @@ private final class AsyncToSync: SyntaxRewriter {
                let mapped = Self.mapping[memberAccess.declName.baseName.text] {
                 memberAccess.declName.baseName = .identifier(mapped)
                 return ExprSyntax(function.with(\.calledExpression, ExprSyntax(memberAccess)))
+            } else if self.forceSync {
+                return ExprSyntax(function)
             } else {
                 self.cannotConvert = true
             }
@@ -90,6 +98,12 @@ public struct FileReferenceMacro: PeerMacro {
         context: some SwiftSyntaxMacros.MacroExpansionContext
     ) throws -> [DeclSyntax] {
         let generators = Generator.parse(node: node) ?? Self.defaultGenerators
+        let forceSync = node.arguments?.as(LabeledExprListSyntax.self)?.contains { (expr: LabeledExprSyntax) -> Bool in
+            return (
+                expr.label?.text == "forceSync" &&
+                expr.expression.as(BooleanLiteralExprSyntax.self)?.literal.tokenKind ~= .keyword(.true)
+            )
+        } == true
 
         guard let (argIndex, contextType) = self.fileRefIndex(function: function, context: context) else {
             throw Error.noFileReferenceArgument
@@ -101,7 +115,7 @@ public struct FileReferenceMacro: PeerMacro {
             throw Error.functionNotThrowing
         }
 
-        if let syncFunction = self.syncVersion(of: function) {
+        if let syncFunction = self.syncVersion(of: function, forceSync: forceSync) {
             return try [
                 DeclSyntax(syncFunction.with(\.attributes, []))
             ] + self.expansion(function: syncFunction, node: node, context: context)
@@ -112,9 +126,9 @@ public struct FileReferenceMacro: PeerMacro {
         }
     }
 
-    private static func syncVersion<F: FuncOrInit>(of function: F) -> F? {
+    private static func syncVersion<F: FuncOrInit>(of function: F, forceSync: Bool) -> F? {
         guard function.signature.effectSpecifiers?.asyncSpecifier?.tokenKind ~= .keyword(SwiftSyntax.Keyword.async),
-              let syncBody = self.syncBody(for: function) else {
+              let syncBody = self.syncBody(for: function, forceSync: forceSync) else {
             return nil
         }
 
@@ -172,10 +186,10 @@ public struct FileReferenceMacro: PeerMacro {
         return syncFunc
     }
 
-    private static func syncBody(for function: some FuncOrInit) -> CodeBlockSyntax? {
+    private static func syncBody(for function: some FuncOrInit, forceSync: Bool) -> CodeBlockSyntax? {
         guard let body = function.body else { return nil }
 
-        let rewriter = AsyncToSync()
+        let rewriter = AsyncToSync(forceSync: forceSync)
         let syncBody = rewriter.visit(body)
 
         if rewriter.cannotConvert { return nil }
