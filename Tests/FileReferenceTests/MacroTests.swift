@@ -18,13 +18,22 @@ import Foundation
 import Testing
 
 @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"))
-private func syncStandaloneFunction<F: FileReference>(file: F, closure: (F) throws -> Void) throws {
+private func syncStandaloneFunction<F: SyncFileReference>(file: F, closure: (F) throws -> Void) throws {
     try closure(file)
 }
 
 @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"))
 private func asyncStandaloneFunction<F: FileReference>(file: F, closure: (F) throws -> Void) async throws {
     try closure(file)
+}
+
+@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"), defaultReturn: 0)
+private func syncNonThrowingFunction(file: some FileReference) -> UInt64 { file.size }
+
+@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"), defaultReturn: 0)
+private func asyncNonThrowingFunction(file: some SyncFileReference) async -> UInt64 {
+    try? await Task.sleep(nanoseconds: 1)
+    return file.size
 }
 
 @FileReference(.filePath("at"))
@@ -115,6 +124,25 @@ func testMacro(fixture: MacroTestFixture) async throws {
         try #expect(String(bytes: ref.syncGetData(in: 0..<20), encoding: .utf8) == "CHAPTER 1. Loomings.")
         try #expect(String(bytes: ref.syncGetData(in: 0xd9d..<0xdb3), encoding: .utf8) == "But here is an artist.")
     }
+}
+
+@Test
+func testNonThrowingFunctions() async throws {
+    let file = try FileDescriptor.open(fixturePath, .readOnly)
+    defer { try? file.close() }
+
+    #expect(await asyncNonThrowingFunction(at: fixturePath) == 12475)
+    #expect(await asyncNonThrowingFunction(file: file, closeWhenDone: false) == 12475)
+    #expect(await asyncNonThrowingFunction(data: [0x00, 0x01, 0x02]) == 3)
+
+    #expect(syncNonThrowingFunction(at: fixturePath) == 12475)
+    #expect(syncNonThrowingFunction(file: file, closeWhenDone: false) == 12475)
+    #expect(syncNonThrowingFunction(data: [0x00, 0x01, 0x02]) == 3)
+
+#if Foundation
+    #expect(await asyncNonThrowingFunction(at: fixtureURL) == 12475)
+    #expect(syncNonThrowingFunction(at: fixtureURL) == 12475)
+#endif
 }
 
 @Test

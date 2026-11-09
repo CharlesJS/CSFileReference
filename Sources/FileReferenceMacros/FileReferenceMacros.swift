@@ -69,7 +69,7 @@ public struct FileReferenceMacro: PeerMacro {
     public enum Error: Swift.Error {
         case notAFunctionOrInitializer
         case noFileReferenceArgument
-        case functionNotThrowing
+        case noDefaultReturnValue
     }
 
 #if Foundation
@@ -109,11 +109,11 @@ public struct FileReferenceMacro: PeerMacro {
             throw Error.noFileReferenceArgument
         }
 
-        let isClass = context.lexicalContext.first?.is(ClassDeclSyntax.self) == true
-
-        guard function.signature.effectSpecifiers?.throwsClause?.throwsSpecifier.tokenKind ~= .keyword(.throws) else {
-            throw Error.functionNotThrowing
+        let defaultReturn = node.arguments?.as(LabeledExprListSyntax.self)?.first {
+            $0.label?.text == "defaultReturn"
         }
+
+        let isClass = context.lexicalContext.first?.is(ClassDeclSyntax.self) == true
 
         if let syncFunction = self.syncVersion(of: function, forceSync: forceSync) {
             return try [
@@ -121,8 +121,15 @@ public struct FileReferenceMacro: PeerMacro {
             ] + self.expansion(function: syncFunction, node: node, context: context)
         }
 
-        return generators.map {
-            self.makeFunc(from: function, generator: $0, argIndex: argIndex, contextType: contextType, isClass: isClass)
+        return try generators.map {
+            try self.makeFunc(
+                from: function,
+                generator: $0,
+                argIndex: argIndex,
+                contextType: contextType,
+                defaultReturn: defaultReturn?.expression,
+                isClass: isClass
+            )
         }
     }
 
@@ -260,66 +267,102 @@ public struct FileReferenceMacro: PeerMacro {
         generator: Generator,
         argIndex: FunctionParameterListSyntax.Index,
         contextType: String?,
+        defaultReturn: ExprSyntax?,
         isClass: Bool
-    ) -> DeclSyntax {
-        if isClass,
-           var initDecl = funcOrInit.as(InitializerDeclSyntax.self),
+    ) throws -> DeclSyntax {
+        var newFunction = funcOrInit
+
+        if isClass {
+            self.addConvenienceKeyword(&newFunction)
+        }
+
+        let originalArg = funcOrInit.signature.parameterClause.parameters[argIndex]
+
+        let nextIndex = self.replaceParam(
+            at: argIndex,
+            in: &newFunction.signature.parameterClause.parameters,
+            generator: generator
+        )
+
+        self.replaceGenericType(in: &newFunction.signature, originalArg: originalArg, generator: generator)
+
+        self.adjustGenericParameterClause(&newFunction.genericParameterClause, originalArg: originalArg)
+        newFunction.genericWhereClause = self.adjustGenericWhereClause(
+            funcOrInit: newFunction,
+            contextType: contextType,
+            fileRefTypeName: generator.fileReferenceTypeName
+        )
+
+        try self.rewriteBody(
+            &newFunction,
+            changedRange: argIndex..<nextIndex,
+            originalArg: originalArg,
+            defaultReturn: defaultReturn,
+            generator: generator
+        )
+
+        newFunction.attributes = []
+
+        return DeclSyntax(newFunction)
+    }
+
+    private static func addConvenienceKeyword<F: FuncOrInit>(_ funcOrInit: inout F) {
+        if var initDecl = funcOrInit.as(InitializerDeclSyntax.self),
            !initDecl.modifiers.contains(where: { $0.name.tokenKind == .keyword(.convenience) }) {
             initDecl.modifiers.insert(DeclModifierSyntax(name: .keyword(.convenience)), at: initDecl.modifiers.startIndex)
             initDecl.initKeyword.leadingTrivia = []
-            return self.makeFunc(
-                from: initDecl,
-                generator: generator,
-                argIndex: argIndex,
-                contextType: contextType,
-                isClass: isClass
-            )
+            funcOrInit = initDecl as! F
         }
+    }
 
-        let sig = funcOrInit.signature
-        let isAsync = sig.effectSpecifiers?.asyncSpecifier?.tokenKind ~= .keyword(SwiftSyntax.Keyword.async)
-
-        let params = sig.parameterClause.parameters
-        let additionalParams = generator.additionalParams
-        let arg = params[argIndex]
-        let newTypeIdentifier = IdentifierTypeSyntax(name: .identifier(generator.typeName))
-
+    private static func replaceParam(
+        at argIndex: FunctionParameterListSyntax.Index,
+        in params: inout FunctionParameterListSyntax,
+        generator: Generator
+    ) -> FunctionParameterListSyntax.Index {
         let label = generator.label
         let paramName = generator.parameterName
-        let firstName = TokenSyntax.identifier(label ?? paramName)
-        let secondName = (label != nil && label != paramName) ? TokenSyntax.identifier(paramName) : nil
+        params[argIndex] = params[argIndex]
+            .with(\.firstName, TokenSyntax.identifier(label ?? paramName))
+            .with(\.secondName, (label != nil && label != paramName) ? TokenSyntax.identifier(paramName) : nil)
+            .with(\.type, TypeSyntax(IdentifierTypeSyntax(name: .identifier(generator.typeName))))
 
-        let newArg = arg
-            .with(\.firstName, firstName)
-            .with(\.secondName, secondName)
-            .with(\.type, TypeSyntax(newTypeIdentifier))
-        var newParams = params.with(\.[argIndex], newArg)
-        for (offset, eachParam) in additionalParams.enumerated() {
-            newParams.insert(eachParam, at: newParams.index(argIndex, offsetBy: offset + 1))
+        var index = argIndex
+
+        for eachParam in generator.additionalParams {
+            params[index].trailingComma = .commaToken()
+            index = params.index(after: index)
+            params.insert(eachParam, at: index)
         }
 
-        for index in newParams.indices {
-            newParams[index].trailingComma = if newParams.index(after: index) == newParams.endIndex {
-                nil
-            } else {
-                .commaToken()
-            }
+        let nextIndex = params.index(after: index)
+        if nextIndex < params.endIndex {
+            params[index].trailingComma = .commaToken()
         }
 
-        let fileRefTypeName = generator.fileReferenceTypeName
-        let lastAdditionalIndex = newParams.index(argIndex, offsetBy: additionalParams.count)
+        return nextIndex
+    }
 
-        let callParams: [String] = zip(newParams.indices, newParams).compactMap { index, param in
-            let refParams = ([param] + additionalParams).map {
-                "\($0.secondName ?? $0.firstName): \($0.secondName ?? $0.firstName)"
-            }.joined(separator: ",")
+    private static func rewriteBody(
+        _ funcOrInit: inout some FuncOrInit,
+        changedRange: Range<FunctionParameterListSyntax.Index>,
+        originalArg: FunctionParameterSyntax,
+        defaultReturn: ExprSyntax?,
+        generator: Generator
+    ) throws {
+        let params = funcOrInit.signature.parameterClause.parameters
+        var callParams: [String] = []
+        callParams.reserveCapacity(params.count)
 
-            return if index == argIndex {
-                "\(params[index].firstName): \(fileRefTypeName)(\(refParams))"
-            } else if index < argIndex || index > lastAdditionalIndex {
-                "\(param.firstName): \(param.secondName ?? param.firstName)"
-            } else {
-                nil
+        for (index, param) in zip(params.indices, params) {
+            if index == changedRange.lowerBound {
+                let refParams = ([param] + generator.additionalParams).map {
+                    "\($0.secondName ?? $0.firstName): \($0.secondName ?? $0.firstName)"
+                }.joined(separator: ",")
+
+                callParams.append("\(originalArg.firstName): \(generator.fileReferenceTypeName)(\(refParams))")
+            } else if !changedRange.contains(index) {
+                callParams.append("\(param.firstName): \(param.secondName ?? param.firstName)")
             }
         }
 
@@ -327,42 +370,74 @@ public struct FileReferenceMacro: PeerMacro {
 
         var call = "\(name)(\(callParams.joined(separator: ", ")))"
 
-        if isAsync {
+        if funcOrInit.signature.effectSpecifiers?.asyncSpecifier?.tokenKind ~= .keyword(SwiftSyntax.Keyword.async) {
             call = "await \(call)"
         }
 
-        let newBody = """
-        {
-            try \(call)
-        }
-        """
-
-        var returnClause = funcOrInit.signature.returnClause
-
-        if let genericType = arg.type.as(IdentifierTypeSyntax.self)?.name.text {
-            for eachIndex in newParams.indices {
-                self.replaceType(genericType, in: &newParams[eachIndex].type, with: fileRefTypeName)
+        if funcOrInit.signature.effectSpecifiers?.throwsClause?.throwsSpecifier.tokenKind ~= .keyword(.throws) {
+            funcOrInit.body = """
+            {
+                try \(raw: call)
             }
+            """
+        } else if !generator.requiresThrows {
+            funcOrInit.body = """
+            {
+                \(raw: call)
+            }
+            """
+        } else if funcOrInit.signature.returnClause == nil {
+            funcOrInit.body = """
+            {
+                do {
+                    try \(raw: call)
+                } catch {}
+            }
+            """
+        } else if let defaultReturn {
+            funcOrInit.body = """
+            {
+                do {
+                    return try \(raw: call)
+                } catch {
+                    return \(defaultReturn)
+                }
+            }
+            """
+        } else {
+            throw Error.noDefaultReturnValue
+        }
+    }
 
-            if var unwrappedReturnClause = returnClause {
-                self.replaceType(genericType, in: &unwrappedReturnClause.type, with: fileRefTypeName)
-                returnClause = unwrappedReturnClause
+    private static func replaceGenericType(
+        in signature: inout FunctionSignatureSyntax,
+        originalArg: FunctionParameterSyntax,
+        generator: Generator
+    ) {
+        let fileReferenceTypeName = generator.fileReferenceTypeName
+
+        if let genericType = originalArg.type.as(IdentifierTypeSyntax.self)?.name.text {
+            self.replaceGenericParams(
+                oldType: genericType,
+                newType: fileReferenceTypeName,
+                in: &signature.parameterClause.parameters
+            )
+
+            if var returnClause = signature.returnClause {
+                self.replaceType(genericType, in: &returnClause.type, with: fileReferenceTypeName)
+                signature.returnClause = returnClause
             }
         }
+    }
 
-        let newFunction = funcOrInit
-            .with(\.signature.parameterClause.parameters, newParams)
-            .with(\.signature.returnClause, returnClause)
-            .with(\.body, .init(stringLiteral: newBody))
-            .with(\.attributes, [])
-            .with(\.genericParameterClause, self.adjustGenericParameterClause(funcOrInit: funcOrInit, argIndex: argIndex))
-            .with(\.genericWhereClause, self.adjustGenericWhereClause(
-                funcOrInit: funcOrInit,
-                contextType: contextType,
-                fileRefTypeName: fileRefTypeName
-            ))
-
-        return DeclSyntax(newFunction)
+    private static func replaceGenericParams(
+        oldType: String,
+        newType: String,
+        in params: inout FunctionParameterListSyntax,
+    ) {
+        for eachIndex in params.indices {
+            self.replaceType(oldType, in: &params[eachIndex].type, with: newType)
+        }
     }
 
     private static func replaceType(_ oldType: String, in type: inout TypeSyntax, with newType: String) {
@@ -405,23 +480,26 @@ public struct FileReferenceMacro: PeerMacro {
     }
 
     private static func adjustGenericParameterClause(
-        funcOrInit: some FuncOrInit,
-        argIndex: FunctionParameterListSyntax.Index
-    ) -> GenericParameterClauseSyntax? {
-        guard let generic = funcOrInit.genericParameterClause else { return nil }
-        let params = funcOrInit.signature.parameterClause.parameters
+        _ genericClause: inout GenericParameterClauseSyntax?,
+        originalArg: FunctionParameterSyntax
+    ) {
+        guard let generic = genericClause else { return }
 
-        guard let type = params[argIndex].type.as(IdentifierTypeSyntax.self)?.name.text else { return nil }
+        guard let type = originalArg.type.as(IdentifierTypeSyntax.self)?.name.text else {
+            genericClause = nil
+            return
+        }
 
         var newGenericParams = generic.parameters.filter { $0.name.text != type }
 
         if newGenericParams.count == 0 {
-            return nil
+            genericClause = nil
+            return
         }
 
         newGenericParams[newGenericParams.index(before: newGenericParams.endIndex)].trailingComma = nil
 
-        return generic.with(\.parameters, newGenericParams)
+        genericClause = generic.with(\.parameters, newGenericParams)
     }
 
     private static func adjustGenericWhereClause(

@@ -3439,8 +3439,225 @@ struct MacroTests {
     }
 #endif
 
+    @Suite("non-throwing function")
+    struct NonThrowingFunction {
+        @Suite("async")
+        struct Async {
+            @Test("with no return value")
+            func nonThrowingAsyncFunctionWithNoReturnValue() {
+                MacroTests.expectExpansion(
+                    """
+                    @FileReference(.filePath("path"), .rawData("data"))
+                    func foo(ref: some FileReference) async {
+                        do {
+                            let data = try await ref.getData(in: 0..<10)
+                            print("Read \\(data.count) bytes")
+                        } catch {
+                            print("An error occurred")
+                        }
+                    }
+                    """,
+                    expandedSource: """
+                    func foo(ref: some FileReference) async {
+                        do {
+                            let data = try await ref.getData(in: 0..<10)
+                            print("Read \\(data.count) bytes")
+                        } catch {
+                            print("An error occurred")
+                        }
+                    }
+
+                    func foo(ref: some SyncFileReference) {
+                        do {
+                            let data = try ref.syncGetData(in: 0 ..< 10)
+                            print("Read \\(data.count) bytes")
+                        } catch {
+                            print("An error occurred")
+                        }
+                    }
+
+                    func foo(path: FilePath) {
+                        do {
+                            try foo(ref: SystemFileReference(path: path))
+                        } catch {
+                        }
+                    }
+                    
+                    func foo(data: some Collection<UInt8>) {
+                        foo(ref: RawDataFileReference(data: data))
+                    }
+                    """
+                )
+            }
+
+            @Test("with a default return value")
+            func nonThrowingAsyncFunctionWithDefaultReturn() {
+                MacroTests.expectExpansion(
+                    """
+                    @FileReference(.filePath("path"), .rawData("data"), defaultReturn: 0)
+                    func foo(ref: some FileReference) async -> Int {
+                        do {
+                            let data = try await ref.getData(in: 0..<10)
+                            return data.count
+                        } catch {
+                            return 0
+                        }
+                    }
+                    """,
+                    expandedSource: """
+                    func foo(ref: some FileReference) async -> Int {
+                        do {
+                            let data = try await ref.getData(in: 0..<10)
+                            return data.count
+                        } catch {
+                            return 0
+                        }
+                    }
+
+                    func foo(ref: some SyncFileReference) -> Int {
+                        do {
+                            let data = try ref.syncGetData(in: 0 ..< 10)
+                            return data.count
+                        } catch {
+                            return 0
+                        }
+                    }
+
+                    func foo(path: FilePath) -> Int {
+                        do {
+                            return try foo(ref: SystemFileReference(path: path))
+                        } catch {
+                            return 0
+                        }
+                    }
+
+                    func foo(data: some Collection<UInt8>) -> Int {
+                        foo(ref: RawDataFileReference(data: data))
+                    }
+                    """
+                )
+            }
+
+            @Test("fails with a return type but no default return value")
+            func failsWhenFunctionReturnsWithNoDefaultReturn() {
+                MacroTests.expectError(
+                    """
+                    @FileReference(.filePath("path"), .rawData("data"))
+                    func foo(ref: some FileReference) async -> Int {
+                        do {
+                            let data = try await ref.getData(in: 0..<10)
+                            return data.count
+                        } catch {
+                            return 0
+                        }
+                    }
+                    """,
+                    errorName: "noDefaultReturnValue"
+                )
+            }
+        }
+
+        @Suite("sync")
+        struct Sync {
+            @Test("with no return value")
+            func nonThrowingSyncFunctionWithNoReturnValue() {
+                MacroTests.expectExpansion(
+                    """
+                    @FileReference(.filePath("path"), .rawData("data"))
+                    func foo(ref: some SyncFileReference) {
+                        do {
+                            let data = try ref.syncGetData(in: 0..<10)
+                            print("Read \\(data.count) bytes")
+                        } catch {
+                            print("An error occurred")
+                        }
+                    }
+                    """,
+                    expandedSource: """
+                    func foo(ref: some SyncFileReference) {
+                        do {
+                            let data = try ref.syncGetData(in: 0..<10)
+                            print("Read \\(data.count) bytes")
+                        } catch {
+                            print("An error occurred")
+                        }
+                    }
+
+                    func foo(path: FilePath) {
+                        do {
+                            try foo(ref: SystemFileReference(path: path))
+                        } catch {
+                        }
+                    }
+
+                    func foo(data: some Collection<UInt8>) {
+                        foo(ref: RawDataFileReference(data: data))
+                    }
+                    """
+                )
+            }
+
+            @Test("with a default return value")
+            func nonThrowingSyncFunctionWithDefaultReturn() {
+                MacroTests.expectExpansion(
+                    """
+                    @FileReference(.filePath("path"), .rawData("data"), defaultReturn: 0)
+                    func foo(ref: some SyncFileReference) -> Int {
+                        do {
+                            let data = try ref.syncGetData(in: 0..<10)
+                            return data.count
+                        } catch {
+                            return 0
+                        }
+                    }
+                    """,
+                    expandedSource: """
+                    func foo(ref: some SyncFileReference) -> Int {
+                        do {
+                            let data = try ref.syncGetData(in: 0..<10)
+                            return data.count
+                        } catch {
+                            return 0
+                        }
+                    }
+
+                    func foo(path: FilePath) -> Int {
+                        do {
+                            return try foo(ref: SystemFileReference(path: path))
+                        } catch {
+                            return 0
+                        }
+                    }
+
+                    func foo(data: some Collection<UInt8>) -> Int {
+                        foo(ref: RawDataFileReference(data: data))
+                    }
+                    """
+                )
+            }
+
+            @Test("fails with a return type but no default return value")
+            func failsWhenFunctionReturnsWithNoDefaultReturn() {
+                MacroTests.expectError(
+                    """
+                    @FileReference(.filePath("path"), .rawData("data"))
+                    func foo(ref: some SyncFileReference) -> Int {
+                        do {
+                            let data = try ref.syncGetData(in: 0..<10)
+                            return data.count
+                        } catch {
+                            return 0
+                        }
+                    }
+                    """,
+                    errorName: "noDefaultReturnValue"
+                )
+            }
+        }
+    }
+
     @Test
-    func failsWhenAttachedToNonFunctionOrInitializer() async throws {
+    func failsWhenAttachedToNonFunctionOrInitializer() {
         MacroTests.expectError(
             """
             @FileReference
@@ -3459,7 +3676,7 @@ struct MacroTests {
     }
 
     @Test
-    func failsWhenNoFileRefArgument() async throws {
+    func failsWhenNoFileRefArgument() {
         MacroTests.expectError(
             """
             @FileReference
@@ -3474,19 +3691,6 @@ struct MacroTests {
             func foo(path: FilePath) throws
             """,
             errorName: "noFileReferenceArgument"
-        )
-    }
-
-    @Test
-    func failsWhenFunctionNotThrowing() async throws {
-        MacroTests.expectError(
-            """
-            @FileReference
-            func foo(ref: some FileReference) async {
-                print("do something")
-            }
-            """,
-            errorName: "functionNotThrowing"
         )
     }
 

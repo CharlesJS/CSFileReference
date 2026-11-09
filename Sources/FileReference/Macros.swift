@@ -8,7 +8,7 @@
 #if Macros
 
 @attached(peer, names: overloaded)
-public macro FileReference(_ generators: Generator..., forceSync: Bool = false) = #externalMacro(
+public macro FileReference(_ generators: Generator..., forceSync: Bool = false, defaultReturn: Any? = nil) = #externalMacro(
     module: "FileReferenceMacros",
     type: "FileReferenceMacro"
 )
