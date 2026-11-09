@@ -80,6 +80,13 @@ extension Generator {
         }
     }
 
+    var requiresThrows: Bool {
+        switch self {
+        case .filePath, .fileDescriptor, .url: true
+        case .rawData: false
+        }
+    }
+
     private func param(type: String, name: String, default: String? = nil) -> FunctionParameterSyntax {
         let defaultValue = `default`.map {
             InitializerClauseSyntax(equal: .equalToken(), value: ExprSyntax(stringLiteral: $0))
