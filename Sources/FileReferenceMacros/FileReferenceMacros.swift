@@ -109,9 +109,7 @@ public struct FileReferenceMacro: PeerMacro {
             throw Error.noFileReferenceArgument
         }
 
-        let defaultReturn = node.arguments?.as(LabeledExprListSyntax.self)?.first {
-            $0.label?.text == "defaultReturn"
-        }
+        let defaultReturn = self.getDefaultReturn(node: node, function: function)
 
         let isClass = context.lexicalContext.first?.is(ClassDeclSyntax.self) == true
 
@@ -127,10 +125,32 @@ public struct FileReferenceMacro: PeerMacro {
                 generator: $0,
                 argIndex: argIndex,
                 contextType: contextType,
-                defaultReturn: defaultReturn?.expression,
+                defaultReturn: defaultReturn,
                 isClass: isClass
             )
         }
+    }
+
+    private static func getDefaultReturn(node: SwiftSyntax.AttributeSyntax, function: some FuncOrInit) -> String? {
+        guard let arguments = node.arguments?.as(LabeledExprListSyntax.self) else { return nil }
+
+        for eachArgument in arguments {
+            switch eachArgument.label?.text {
+            case "errorReturn":
+                let returnType = function.signature.returnClause?.type ?? TypeSyntax("Void")
+
+                return """
+                let returnClosure: (any Error) -> \(returnType.with(\.trailingTrivia, [])) = \(eachArgument.expression)
+                return returnClosure(error)
+                """
+            case "defaultReturn":
+                return "return \(eachArgument.expression)"
+            default:
+                break
+            }
+        }
+
+        return nil
     }
 
     private static func syncVersion<F: FuncOrInit>(of function: F, forceSync: Bool) -> F? {
@@ -267,7 +287,7 @@ public struct FileReferenceMacro: PeerMacro {
         generator: Generator,
         argIndex: FunctionParameterListSyntax.Index,
         contextType: String?,
-        defaultReturn: ExprSyntax?,
+        defaultReturn: String?,
         isClass: Bool
     ) throws -> DeclSyntax {
         var newFunction = funcOrInit
@@ -347,7 +367,7 @@ public struct FileReferenceMacro: PeerMacro {
         _ funcOrInit: inout some FuncOrInit,
         changedRange: Range<FunctionParameterListSyntax.Index>,
         originalArg: FunctionParameterSyntax,
-        defaultReturn: ExprSyntax?,
+        defaultReturn: String?,
         generator: Generator
     ) throws {
         let params = funcOrInit.signature.parameterClause.parameters
@@ -400,7 +420,7 @@ public struct FileReferenceMacro: PeerMacro {
                 do {
                     return try \(raw: call)
                 } catch {
-                    return \(defaultReturn)
+                    \(raw: defaultReturn)
                 }
             }
             """

@@ -3538,6 +3538,57 @@ struct MacroTests {
                 )
             }
 
+            @Test("with an error return closure")
+            func nonThrowingAsyncFunctionWithErrorReturnClosure() {
+                MacroTests.expectExpansion(
+                    """
+                    @FileReference(.filePath("path"), .rawData("data"), errorReturn: { String(describing: $0) })
+                    func foo(ref: some FileReference) async -> String {
+                        do {
+                            let data = try await ref.getData(in: 0..<10)
+                            return String(decoding: data, as: UTF8.self)
+                        } catch {
+                            return "Couldn't get data"
+                        }
+                    }
+                    """,
+                    expandedSource: """
+                    func foo(ref: some FileReference) async -> String {
+                        do {
+                            let data = try await ref.getData(in: 0..<10)
+                            return String(decoding: data, as: UTF8.self)
+                        } catch {
+                            return "Couldn't get data"
+                        }
+                    }
+
+                    func foo(ref: some SyncFileReference) -> String {
+                        do {
+                            let data = try ref.syncGetData(in: 0 ..< 10)
+                            return String(decoding: data, as: UTF8.self)
+                        } catch {
+                            return "Couldn't get data"
+                        }
+                    }
+
+                    func foo(path: FilePath) -> String {
+                        do {
+                            return try foo(ref: SystemFileReference(path: path))
+                        } catch {
+                            let returnClosure: (any Error) -> String = {
+                                String(describing: $0)
+                            }
+                            return returnClosure(error)
+                        }
+                    }
+
+                    func foo(data: some Collection<UInt8>) -> String {
+                        foo(ref: RawDataFileReference(data: data))
+                    }
+                    """
+                )
+            }
+
             @Test("fails with a return type but no default return value")
             func failsWhenFunctionReturnsWithNoDefaultReturn() {
                 MacroTests.expectError(
@@ -3630,6 +3681,48 @@ struct MacroTests {
                     }
 
                     func foo(data: some Collection<UInt8>) -> Int {
+                        foo(ref: RawDataFileReference(data: data))
+                    }
+                    """
+                )
+            }
+
+            @Test("with an error return closure")
+            func nonThrowingSyncFunctionWithErrorReturnClosure() {
+                MacroTests.expectExpansion(
+                    """
+                    @FileReference(.filePath("path"), .rawData("data"), errorReturn: { String(describing: $0) })
+                    func foo(ref: some SyncFileReference) -> String {
+                        do {
+                            let data = try ref.getData(in: 0..<10)
+                            return String(decoding: data, as: UTF8.self)
+                        } catch {
+                            return "Couldn't get data"
+                        }
+                    }
+                    """,
+                    expandedSource: """
+                    func foo(ref: some SyncFileReference) -> String {
+                        do {
+                            let data = try ref.getData(in: 0..<10)
+                            return String(decoding: data, as: UTF8.self)
+                        } catch {
+                            return "Couldn't get data"
+                        }
+                    }
+
+                    func foo(path: FilePath) -> String {
+                        do {
+                            return try foo(ref: SystemFileReference(path: path))
+                        } catch {
+                            let returnClosure: (any Error) -> String = {
+                                String(describing: $0)
+                            }
+                            return returnClosure(error)
+                        }
+                    }
+
+                    func foo(data: some Collection<UInt8>) -> String {
                         foo(ref: RawDataFileReference(data: data))
                     }
                     """
