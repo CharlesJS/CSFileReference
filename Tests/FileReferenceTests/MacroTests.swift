@@ -28,10 +28,10 @@ private func asyncStandaloneFunction<F: FileReference>(file: F, closure: (F) thr
 }
 
 @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"), defaultReturn: 0)
-private func syncNonThrowingFunction(file: some FileReference) -> UInt64 { file.size }
+private func syncNonThrowingFunction(file: some SyncFileReference) -> UInt64 { file.size }
 
 @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"), defaultReturn: 0)
-private func asyncNonThrowingFunction(file: some SyncFileReference) async -> UInt64 {
+private func asyncNonThrowingFunction(file: some FileReference) async -> UInt64 {
     try? await Task.sleep(nanoseconds: 1)
     return file.size
 }
