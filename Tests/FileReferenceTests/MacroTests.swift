@@ -27,11 +27,24 @@ private func asyncStandaloneFunction<F: FileReference>(file: F, closure: (F) thr
     try closure(file)
 }
 
-@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"), defaultReturn: 0)
-private func syncNonThrowingFunction(file: some SyncFileReference) -> UInt64 { file.size }
+@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"), errorReturn: {
+    "Error: " + String(describing: $0)
+})
+private func syncNonThrowingFunctionWithClosure(file: some SyncFileReference) -> String { "Size: \(file.size)" }
+
+@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"), errorReturn: {
+    "Error: " + String(describing: $0)
+})
+private func asyncNonThrowingFunctionWithClosure(file: some FileReference) async -> String {
+    try? await Task.sleep(nanoseconds: 1)
+    return "Size: \(file.size)"
+}
 
 @FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"), defaultReturn: 0)
-private func asyncNonThrowingFunction(file: some FileReference) async -> UInt64 {
+private func syncNonThrowingFunctionWithDefault(file: some SyncFileReference) -> UInt64 { file.size }
+
+@FileReference(.filePath("at"), .fileDescriptor("file"), .rawData("data"), .url("at"), defaultReturn: 0)
+private func asyncNonThrowingFunctionWithDefault(file: some FileReference) async -> UInt64 {
     try? await Task.sleep(nanoseconds: 1)
     return file.size
 }
@@ -131,17 +144,34 @@ func testNonThrowingFunctions() async throws {
     let file = try FileDescriptor.open(fixturePath, .readOnly)
     defer { try? file.close() }
 
-    #expect(await asyncNonThrowingFunction(at: fixturePath) == 12475)
-    #expect(await asyncNonThrowingFunction(file: file, closeWhenDone: false) == 12475)
-    #expect(await asyncNonThrowingFunction(data: [0x00, 0x01, 0x02]) == 3)
+    #expect(await asyncNonThrowingFunctionWithDefault(at: fixturePath) == 12475)
+    #expect(await asyncNonThrowingFunctionWithDefault(file: file, closeWhenDone: false) == 12475)
+    #expect(await asyncNonThrowingFunctionWithDefault(data: [0x00, 0x01, 0x02]) == 3)
+    #expect(await asyncNonThrowingFunctionWithDefault(file: FileDescriptor(rawValue: -1), closeWhenDone: false) == 0)
 
-    #expect(syncNonThrowingFunction(at: fixturePath) == 12475)
-    #expect(syncNonThrowingFunction(file: file, closeWhenDone: false) == 12475)
-    #expect(syncNonThrowingFunction(data: [0x00, 0x01, 0x02]) == 3)
+    #expect(await asyncNonThrowingFunctionWithClosure(at: fixturePath) == "Size: 12475")
+    #expect(await asyncNonThrowingFunctionWithClosure(file: file, closeWhenDone: false) == "Size: 12475")
+    #expect(await asyncNonThrowingFunctionWithClosure(data: [0x00, 0x01, 0x02]) == "Size: 3")
+    #expect(
+        await asyncNonThrowingFunctionWithClosure(file: FileDescriptor(rawValue: -1), closeWhenDone: false) ==
+        "Error: Bad file descriptor"
+    )
 
+    #expect(syncNonThrowingFunctionWithDefault(at: fixturePath) == 12475)
+    #expect(syncNonThrowingFunctionWithDefault(file: file, closeWhenDone: false) == 12475)
+    #expect(syncNonThrowingFunctionWithDefault(data: [0x00, 0x01, 0x02]) == 3)
+    #expect(syncNonThrowingFunctionWithDefault(file: FileDescriptor(rawValue: -1), closeWhenDone: false) == 0)
+
+    #expect(syncNonThrowingFunctionWithClosure(at: fixturePath) == "Size: 12475")
+    #expect(syncNonThrowingFunctionWithClosure(file: file, closeWhenDone: false) == "Size: 12475")
+    #expect(syncNonThrowingFunctionWithClosure(data: [0x00, 0x01, 0x02]) == "Size: 3")
+    #expect(
+        syncNonThrowingFunctionWithClosure(file: FileDescriptor(rawValue: -1), closeWhenDone: false) ==
+        "Error: Bad file descriptor"
+    )
 #if Foundation
-    #expect(await asyncNonThrowingFunction(at: fixtureURL) == 12475)
-    #expect(syncNonThrowingFunction(at: fixtureURL) == 12475)
+    #expect(await asyncNonThrowingFunctionWithDefault(at: fixtureURL) == 12475)
+    #expect(syncNonThrowingFunctionWithDefault(at: fixtureURL) == 12475)
 #endif
 }
 
