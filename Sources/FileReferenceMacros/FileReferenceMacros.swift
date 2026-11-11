@@ -33,13 +33,12 @@ extension InitializerDeclSyntax: FuncOrInit {
 private final class WhitespaceStripper: SyntaxRewriter {
     override func visit(_ token: TokenSyntax) -> TokenSyntax {
         token
-            .with(\.leadingTrivia, Trivia(pieces: token.leadingTrivia.filter { !$0.isWhitespace }))
-            .with(\.trailingTrivia, Trivia(pieces: token.trailingTrivia.filter { !$0.isWhitespace }))
+            .with(\.leadingTrivia, Trivia(pieces: token.leadingTrivia.filter { !$0.isWhitespace && !$0.isComment }))
+            .with(\.trailingTrivia, Trivia(pieces: token.trailingTrivia.filter { !$0.isWhitespace && !$0.isComment }))
     }
 }
 
 private final class AsyncToSync: SyntaxRewriter {
-    private static let mapping = ["getData" : "syncGetData", "getBytes": "syncGetBytes"]
     private let forceSync: Bool
     private(set) var cannotConvert = false
 
@@ -50,10 +49,11 @@ private final class AsyncToSync: SyntaxRewriter {
 
     override func visit(_ awaitSyntax: AwaitExprSyntax) -> ExprSyntax {
         if let function = awaitSyntax.expression.as(FunctionCallExprSyntax.self) {
-            if var memberAccess = function.calledExpression.as(MemberAccessExprSyntax.self),
-               let mapped = Self.mapping[memberAccess.declName.baseName.text] {
-                memberAccess.declName.baseName = .identifier(mapped)
-                return ExprSyntax(function.with(\.calledExpression, ExprSyntax(memberAccess)))
+            let mapper = FunctionMapper()
+            let mapped = mapper.visit(function)
+
+            if mapper.performedMapping {
+                return ExprSyntax(mapped)
             } else if self.forceSync {
                 return ExprSyntax(function)
             } else {
@@ -62,6 +62,20 @@ private final class AsyncToSync: SyntaxRewriter {
         }
 
         return ExprSyntax(awaitSyntax)
+    }
+}
+
+private final class FunctionMapper: SyntaxRewriter {
+    private static let mapping = ["getData" : "syncGetData", "getBytes": "syncGetBytes"]
+    var performedMapping = false
+
+    override func visit(_ decl: DeclReferenceExprSyntax) -> ExprSyntax {
+        if let mapped = Self.mapping[decl.baseName.text] {
+            self.performedMapping = true
+            return ExprSyntax(decl.with(\.baseName, .identifier(mapped)))
+        }
+
+        return ExprSyntax(decl)
     }
 }
 
@@ -161,7 +175,6 @@ public struct FileReferenceMacro: PeerMacro {
 
         var syncFunc = function.with(\.body, syncBody)
 
-        syncFunc.keyword.leadingTrivia = .spaces(2)
         syncFunc.signature.effectSpecifiers?.asyncSpecifier = nil
 
         for index in syncFunc.signature.parameterClause.parameters.indices {
