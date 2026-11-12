@@ -3749,6 +3749,53 @@ struct MacroTests {
         }
     }
 
+    @Test("maps members when followed by a method call chain")
+    func mapsMembersWithMethodCallChain() {
+        MacroTests.expectExpansion(
+            """
+            @FileReference(forceSync: true)
+            private static func isSomeFileType(file: some FileReference) async throws -> Bool {
+                try await file.getData(in: 0..<4).elementsEqual(magic)
+            }
+            """,
+            expandedSource: """
+            private static func isSomeFileType(file: some FileReference) async throws -> Bool {
+                try await file.getData(in: 0..<4).elementsEqual(magic)
+            }
+            
+            private static func isSomeFileType(file: some SyncFileReference) throws -> Bool {
+                try file.syncGetData(in: 0 ..< 4).elementsEqual(magic)
+            }
+            """
+        )
+    }
+
+    @Test("removes comments in generated function body")
+    func removesCommentsInGeneratedFunctionBody() {
+        MacroTests.expectExpansion(
+            """
+            @FileReference()
+            func foo(file: some FileReference) async throws -> UInt64 {
+                // Some nifty comment is here
+                let size = file.size
+                return size
+            }
+            """,
+            expandedSource: """
+            func foo(file: some FileReference) async throws -> UInt64 {
+                // Some nifty comment is here
+                let size = file.size
+                return size
+            }
+
+            func foo(file: some SyncFileReference) throws -> UInt64 {
+                let size = file.size
+                return size
+            }
+            """
+        )
+    }
+
     @Test
     func failsWhenAttachedToNonFunctionOrInitializer() {
         MacroTests.expectError(
