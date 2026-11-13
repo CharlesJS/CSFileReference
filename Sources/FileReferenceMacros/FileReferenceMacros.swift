@@ -154,7 +154,7 @@ public struct FileReferenceMacro: PeerMacro {
                 let returnType = function.signature.returnClause?.type ?? TypeSyntax("Void")
 
                 return """
-                let returnClosure: (any Error) -> \(returnType.with(\.trailingTrivia, [])) = \(eachArgument.expression)
+                let returnClosure: (any Swift.Error) -> \(returnType.with(\.trailingTrivia, [])) = \(eachArgument.expression)
                 return returnClosure(error)
                 """
             case "defaultReturn":
