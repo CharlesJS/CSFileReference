@@ -3575,7 +3575,7 @@ struct MacroTests {
                         do {
                             return try foo(ref: SystemFileReference(path: path))
                         } catch {
-                            let returnClosure: (any Error) -> String = {
+                            let returnClosure: (any Swift.Error) -> String = {
                                 String(describing: $0)
                             }
                             return returnClosure(error)
@@ -3715,7 +3715,7 @@ struct MacroTests {
                         do {
                             return try foo(ref: SystemFileReference(path: path))
                         } catch {
-                            let returnClosure: (any Error) -> String = {
+                            let returnClosure: (any Swift.Error) -> String = {
                                 String(describing: $0)
                             }
                             return returnClosure(error)
