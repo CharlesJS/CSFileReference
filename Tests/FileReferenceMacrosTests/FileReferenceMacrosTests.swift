@@ -3770,6 +3770,38 @@ struct MacroTests {
         )
     }
 
+    @Test("maps members inside closure")
+    func mapsMembersWithinClosure() {
+        MacroTests.expectExpansion(
+            """
+            @FileReference(forceSync: true)
+            private static func foo(file: some FileReference) async throws -> UInt64 {
+                let data = try await {
+                    try await file.getData(in: 0..<10)
+                }()
+            
+                return data.size
+            }
+            """,
+            expandedSource: """
+            private static func foo(file: some FileReference) async throws -> UInt64 {
+                let data = try await {
+                    try await file.getData(in: 0..<10)
+                }()
+            
+                return data.size
+            }
+
+            private static func foo(file: some SyncFileReference) throws -> UInt64 {
+                let data = try {
+                    try file.syncGetData(in: 0 ..< 10)
+                }()
+                return data.size
+            }
+            """
+        )
+    }
+
     @Test("removes comments in generated function body")
     func removesCommentsInGeneratedFunctionBody() {
         MacroTests.expectExpansion(

@@ -53,9 +53,9 @@ private final class AsyncToSync: SyntaxRewriter {
             let mapped = mapper.visit(function)
 
             if mapper.performedMapping {
-                return ExprSyntax(mapped)
+                return ExprSyntax(self.visit(mapped))
             } else if self.forceSync {
-                return ExprSyntax(function)
+                return ExprSyntax(self.visit(function))
             } else {
                 self.cannotConvert = true
             }
